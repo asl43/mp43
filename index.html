@@ -347,10 +347,10 @@
 <body>
     <div class="container">
         <h1>🎵 Extrator e Conversor de Áudio</h1>
-        <p class="lead">Extraia áudio de vídeos ou adicione um áudio a uma imagem.</p>
+        <p class="lead">Extraia áudio de vídeos, remova a trilha sonora ou adicione um áudio a uma imagem.</p>
 
         <div class="alert alert-warning">
-            <strong>⚠️ Limitação:</strong> Seu navegador não suporta SharedArrayBuffer. Por isso, a extração/combinação de áudio é feita usando APIs nativas, e o áudio de saída será no formato **WAV** (para extração) ou **WebM** (para criação de vídeo).
+            <strong>⚠️ Limitação:</strong> Seu navegador não suporta SharedArrayBuffer. A edição e conversão são feitas com APIs nativas.
         </div>
 
         <div class="alert alert-info">
@@ -367,14 +367,19 @@
 
                 <div class="method-selector">
                     <h3>🔧 Modo de Conversão:</h3>
-                    <div class="method-option selected" data-mode="extract">
+                    <div class="method-option selected" data-mode="extract-audio">
                         <h4>🗂️ Extrair Áudio</h4>
                         <p>Extrai o áudio de arquivos de vídeo ou áudio. Perfeito para converter.</p>
                     </div>
                     
+                    <div class="method-option" data-mode="remove-audio">
+                        <h4>🔇 Remover Áudio</h4>
+                        <p>Remove a trilha sonora de um vídeo, gerando um novo vídeo mudo.</p>
+                    </div>
+
                     <div class="method-option" data-mode="add-audio">
-                        <h4>🔗 Adicionar Áudio</h4>
-                        <p>Cria um vídeo a partir de uma foto e um áudio. Apenas para arquivos de imagem.</p>
+                        <h4>🖼️ Adicionar Áudio a IMAGEM</h4>
+                        <p>Cria um vídeo a partir de uma foto e um áudio. Não funciona com arquivos de vídeo existentes.</p>
                     </div>
                 </div>
 
@@ -445,9 +450,10 @@
 
         <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
 
+        <video id="video-source" style="display:none"></video>
+
         <footer>
             <strong>🔧 Modo:</strong> <span id="currentMode">Extrair Áudio</span><br>
-            <strong>🔨 Método de Extração:</strong> <span id="currentMethod">Web Audio API</span>
         </footer>
     </div>
 
@@ -455,8 +461,7 @@
         let selectedFiles = [];
         let convertedAudios = [];
         let isProcessing = false;
-        let conversionMode = 'extract';
-        let extractionMethod = 'web-audio';
+        let conversionMode = 'extract-audio';
         let db;
         let audioBlobToAttach = null;
         let mediaRecorder;
@@ -481,7 +486,6 @@
             convertedFiles: document.getElementById('convertedFiles'),
             convertedList: document.getElementById('convertedList'),
             currentMode: document.getElementById('currentMode'),
-            currentMethod: document.getElementById('currentMethod'),
             dropArea: document.getElementById('dropArea'),
             addAudioControls: document.getElementById('addAudioControls'),
             ttsText: document.getElementById('ttsText'),
@@ -495,6 +499,7 @@
             audioPreview: document.getElementById('audioPreview'),
             tabBtns: document.querySelectorAll('.tab-btn'),
             tabContents: document.querySelectorAll('.tab-content'),
+            videoSource: document.getElementById('video-source')
         };
 
         function log(msg, type = 'info') {
@@ -532,7 +537,7 @@
         async function saveAudioToDB(audioData) {
             const tx = db.transaction(STORE_NAME, 'readwrite');
             const store = tx.objectStore(STORE_NAME);
-            const id = `audio-${Date.now()}`;
+            const id = `file-${Date.now()}`;
             const dataToSave = {
                 id: id,
                 name: audioData.name,
@@ -603,7 +608,7 @@
             utterance.pitch = parseFloat(elements.ttsPitch.value);
             
             const destination = audioContext.createMediaStreamDestination();
-            const recorder = new MediaRecorder(destination.stream);
+            const recorder = new MediaRecorder(destination.stream, { mimeType: 'audio/webm' });
             let chunks = [];
             recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
@@ -622,7 +627,7 @@
         elements.recordStartBtn.addEventListener('click', async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
                 recordedChunks = [];
                 mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
                 mediaRecorder.onstop = () => {
@@ -725,7 +730,7 @@
             elements.convertedList.innerHTML = convertedAudios.map((audio, idx) => `
                 <div class="converted-item">
                     <div class="converted-header">
-                        <div class="converted-name">🎵 ${audio.name}</div>
+                        <div class="converted-name">${audio.name}</div>
                         <div class="converted-size">${(audio.size/1024/1024).toFixed(2)} MB</div>
                     </div>
                     ${audio.type.startsWith('video/') ? `<video controls style="width: 100%;"></video>` : `<audio controls style="width: 100%;"></audio>`}
@@ -771,7 +776,7 @@
             elements.processBtn.textContent = 'Processando...';
             convertedAudios = [];
             
-            if (conversionMode === 'extract') {
+            if (conversionMode === 'extract-audio') {
                 if (!file.type.startsWith('video/') && !file.type.startsWith('audio/')) {
                     alert('Para extrair áudio, por favor selecione um arquivo de vídeo ou áudio.');
                     isProcessing = false;
@@ -780,6 +785,15 @@
                     return;
                 }
                 await extractAudioFromFile(file);
+            } else if (conversionMode === 'remove-audio') {
+                if (!file.type.startsWith('video/')) {
+                    alert('Para remover o áudio, por favor selecione um arquivo de vídeo.');
+                    isProcessing = false;
+                    elements.processBtn.disabled = false;
+                    elements.processBtn.textContent = 'Processar Arquivo';
+                    return;
+                }
+                await removeAudioFromVideo(file);
             } else if (conversionMode === 'add-audio') {
                 if (!file.type.startsWith('image/')) {
                     alert('Para adicionar áudio, por favor selecione um arquivo de imagem.');
@@ -826,6 +840,58 @@
                 log(`✅ Áudio extraído e salvo: ${savedAudio.name}`, 'success');
             } catch (err) {
                 log(`❌ Erro ao extrair áudio: ${err.message}`, 'error');
+            }
+        }
+
+        async function removeAudioFromVideo(videoFile) {
+            setProgress(0, `Removendo áudio de ${videoFile.name}...`);
+            log(`🔄 Removendo áudio...`);
+            try {
+                elements.videoSource.src = URL.createObjectURL(videoFile);
+                await new Promise(resolve => elements.videoSource.onloadedmetadata = resolve);
+
+                const videoStream = elements.videoSource.captureStream();
+                const videoTrack = videoStream.getVideoTracks()[0];
+                const newStream = new MediaStream([videoTrack]);
+                
+                const recorder = new MediaRecorder(newStream, { mimeType: 'video/webm' });
+                let chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                
+                recorder.onstop = async () => {
+                    const silentVideoBlob = new Blob(chunks, { type: 'video/webm' });
+                    const savedVideo = await saveAudioToDB({
+                        name: `${videoFile.name.replace(/\.[^/.]+$/, '')}_mudo.webm`,
+                        size: silentVideoBlob.size,
+                        blob: silentVideoBlob,
+                        type: 'video/webm'
+                    });
+                    convertedAudios.push({
+                        ...savedVideo,
+                        url: URL.createObjectURL(savedVideo.blob)
+                    });
+                    log(`✅ Vídeo mudo criado e salvo: ${savedVideo.name}`, 'success');
+
+                    elements.videoSource.pause();
+                    elements.videoSource.src = '';
+
+                    elements.processBtn.disabled = false;
+                    elements.processBtn.textContent = 'Processar Arquivo';
+                    setProgress(100, 'Concluído!');
+                    renderConvertedFiles();
+                };
+
+                recorder.start();
+                elements.videoSource.play();
+                
+                elements.videoSource.onended = () => {
+                    recorder.stop();
+                };
+            } catch (err) {
+                log(`❌ Erro ao remover áudio: ${err.message}`, 'error');
+                isProcessing = false;
+                elements.processBtn.disabled = false;
+                elements.processBtn.textContent = 'Processar Arquivo';
             }
         }
 
@@ -947,7 +1013,6 @@
 
         (async () => {
             log('🚀 Extrator de áudio carregado!');
-            log('💡 Este sistema não usa FFmpeg, mas extrai o áudio com APIs do navegador no formato WAV (para extração) ou WebM (para criação de vídeo).');
             await openDB();
             const audiosFromDB = await getAudiosFromDB();
             convertedAudios = audiosFromDB.map(audio => ({
