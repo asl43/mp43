@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Conversor Vídeo → MP3 (Controle de Salvamento)</title>
+    <title>Conversor Vídeo → MP3 (Debug Completo)</title>
     <style>
         :root{font-family:Inter, system-ui, Arial; --accent:#0b84ff}
         body{background:#f4f7fb;color:#111;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -19,8 +19,12 @@
         button.ghost{background:transparent;color:var(--accent);border:1px solid #e6eefb}
         button.success{background:#059669}
         button.warning{background:#d97706}
-        pre{background:#0b1220;color:#dbeafe;padding:12px;border-radius:8px;overflow:auto;font-size:12px}
-        .log{height:120px;overflow:auto;margin-top:10px;background:#0f1724;color:#d1fae5;padding:10px;border-radius:8px;font-size:12px}
+        button.error{background:#dc2626}
+        pre{background:#0b1220;color:#dbeafe;padding:12px;border-radius:8px;overflow:auto;font-size:11px;max-height:200px}
+        .log{height:140px;overflow:auto;margin-top:10px;background:#0f1724;color:#d1fae5;padding:10px;border-radius:8px;font-size:11px}
+        .log .error{color:#fca5a5}
+        .log .success{color:#86efac}
+        .log .warning{color:#fcd34d}
         .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
         .small{font-size:12px}
         .file-list{margin-top:10px}
@@ -38,27 +42,35 @@
         .radio-group{display:flex;gap:15px;flex-wrap:wrap}
         .radio-item{display:flex;align-items:center;gap:6px}
         .audio-player{width:100%;margin-top:8px}
+        .status-info{background:#eff6ff;padding:10px;border-radius:6px;margin:10px 0;font-size:12px}
+        .debug-section{background:#f1f5f9;padding:12px;border-radius:8px;margin:10px 0}
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🎵 Conversor Vídeo → MP3</h1>
-        <p class="lead">Converta vídeos para MP3 e escolha como salvar os arquivos convertidos.</p>
+        <h1>🔧 Conversor Debug</h1>
+        <p class="lead">Versão com debug completo para identificar problemas de conversão.</p>
+
+        <div class="debug-section">
+            <h3>🩺 Status do Sistema</h3>
+            <div id="systemStatus">Verificando...</div>
+            <div class="controls">
+                <button id="testSystemBtn" class="ghost small">🧪 Testar Sistema</button>
+                <button id="testFFmpegBtn" class="ghost small">⚙️ Testar FFmpeg</button>
+                <button id="clearLogsBtn" class="warning small">🗑️ Limpar Logs</button>
+            </div>
+        </div>
 
         <div class="save-options">
-            <h3>📁 Como deseja salvar os arquivos convertidos?</h3>
+            <h3>📁 Como salvar arquivos convertidos?</h3>
             <div class="radio-group">
                 <label class="radio-item">
                     <input type="radio" name="saveMode" value="download" checked>
-                    <span>Download automático (pasta Downloads)</span>
-                </label>
-                <label class="radio-item">
-                    <input type="radio" name="saveMode" value="choosefolder">
-                    <span>Escolher pasta específica</span>
+                    <span>Download automático</span>
                 </label>
                 <label class="radio-item">
                     <input type="radio" name="saveMode" value="browser">
-                    <span>Manter no navegador (tocar aqui)</span>
+                    <span>Manter no navegador</span>
                 </label>
             </div>
         </div>
@@ -69,30 +81,28 @@
                 <input id="videoInput" type="file" accept="video/*" multiple />
 
                 <div style="margin-top:10px">
-                    <label class="small">🎚️ Qualidade MP3 (kbps)</label>
+                    <label class="small">🎚️ Qualidade MP3</label>
                     <select id="bitrate">
-                        <option value="128">128 kbps (boa qualidade)</option>
-                        <option value="192" selected>192 kbps (alta qualidade)</option>
-                        <option value="256">256 kbps (muito alta)</option>
-                        <option value="320">320 kbps (máxima)</option>
+                        <option value="128">128 kbps</option>
+                        <option value="192" selected>192 kbps</option>
+                        <option value="320">320 kbps</option>
                     </select>
                 </div>
 
                 <div class="controls">
-                    <button id="convertBtn">🎵 Converter para MP3</button>
-                    <button id="chooseFolderBtn" class="ghost small">📁 Escolher Pasta</button>
-                    <button id="clearAllBtn" class="warning small">🗑️ Limpar Tudo</button>
+                    <button id="convertBtn">🎵 Converter</button>
+                    <button id="convertSingleBtn" class="ghost">🎵 Converter 1º arquivo</button>
                 </div>
 
                 <div class="file-list" id="fileList"></div>
             </div>
 
             <div class="col">
-                <label>📊 Status</label>
-                <div class="log" id="log">Pronto para converter...</div>
+                <label>📊 Logs Detalhados</label>
+                <div class="log" id="log"></div>
 
-                <label style="margin-top:8px">⚙️ Progresso</label>
-                <pre id="progress">Aguardando...</pre>
+                <label style="margin-top:8px">⚙️ Progresso FFmpeg</label>
+                <pre id="ffmpegLog">Aguardando...</pre>
             </div>
         </div>
 
@@ -102,170 +112,220 @@
         </div>
 
         <footer>
-            <strong>💡 Dicas:</strong>
-            • "Escolher pasta" funciona no Chrome/Edge
-            • "Manter no navegador" permite tocar os arquivos aqui mesmo
-            • Arquivos ficam salvos até você fechar a aba
+            <strong>🔧 Debug:</strong> Esta versão tenta usar CDN automaticamente e mostra todos os erros detalhados.
         </footer>
     </div>
 
     <script type="module">
-        // Importa a biblioteca FFmpeg da sua pasta local 'ffmpeg'
-        import { FFmpeg } from './ffmpeg/ffmpeg.js';
-        import { fetchFile } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
-
         let ffmpeg = null;
-        let selectedFolder = null;
-        let convertedAudios = []; // Array para guardar os áudios convertidos
-
-        // Elementos DOM
-        const videoInput = document.getElementById('videoInput');
-        const fileList = document.getElementById('fileList');
-        const convertBtn = document.getElementById('convertBtn');
-        const chooseFolderBtn = document.getElementById('chooseFolderBtn');
-        const clearAllBtn = document.getElementById('clearAllBtn');
-        const logEl = document.getElementById('log');
-        const progressEl = document.getElementById('progress');
-        const bitrateSelect = document.getElementById('bitrate');
-        const convertedFiles = document.getElementById('convertedFiles');
-        const convertedList = document.getElementById('convertedList');
-        const saveModeRadios = document.querySelectorAll('input[name="saveMode"]');
-
+        let convertedAudios = [];
         let selectedFiles = [];
         let isConverting = false;
 
-        function log(msg) {
+        // Elementos DOM
+        const elements = {
+            systemStatus: document.getElementById('systemStatus'),
+            videoInput: document.getElementById('videoInput'),
+            fileList: document.getElementById('fileList'),
+            convertBtn: document.getElementById('convertBtn'),
+            convertSingleBtn: document.getElementById('convertSingleBtn'),
+            testSystemBtn: document.getElementById('testSystemBtn'),
+            testFFmpegBtn: document.getElementById('testFFmpegBtn'),
+            clearLogsBtn: document.getElementById('clearLogsBtn'),
+            log: document.getElementById('log'),
+            ffmpegLog: document.getElementById('ffmpegLog'),
+            bitrate: document.getElementById('bitrate'),
+            convertedFiles: document.getElementById('convertedFiles'),
+            convertedList: document.getElementById('convertedList')
+        };
+
+        function log(msg, type = 'info') {
             const time = new Date().toLocaleTimeString();
-            logEl.innerHTML += `<div>[${time}] ${msg}</div>`;
-            logEl.scrollTop = logEl.scrollHeight;
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `[${time}] ${msg}`;
+            elements.log.appendChild(div);
+            elements.log.scrollTop = elements.log.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${msg}`);
         }
 
-        function setProgress(text) {
-            progressEl.textContent = text;
+        function setFFmpegLog(text) {
+            elements.ffmpegLog.textContent = text;
         }
 
         function getSaveMode() {
             return document.querySelector('input[name="saveMode"]:checked').value;
         }
 
-        // Escolher pasta para salvar
-        chooseFolderBtn.addEventListener('click', async () => {
+        // Verificação inicial do sistema
+        async function checkSystem() {
             try {
-                if (!window.showDirectoryPicker) {
-                    alert('Seu navegador não suporta seleção de pastas. Use Chrome ou Edge.');
-                    return;
-                }
-                selectedFolder = await window.showDirectoryPicker();
-                log(`📁 Pasta selecionada: ${selectedFolder.name}`);
-                chooseFolderBtn.textContent = `✅ ${selectedFolder.name}`;
-            } catch (err) {
-                log(`❌ Erro ao escolher pasta: ${err.message}`);
-            }
-        });
+                log('🔍 Verificando suporte do navegador...');
+                
+                const checks = {
+                    'SharedArrayBuffer': !!window.SharedArrayBuffer,
+                    'WebAssembly': !!window.WebAssembly,
+                    'Worker': !!window.Worker,
+                    'File API': !!window.File,
+                    'Blob': !!window.Blob,
+                    'URL.createObjectURL': !!window.URL?.createObjectURL
+                };
 
-        // Limpar tudo
-        clearAllBtn.addEventListener('click', () => {
-            selectedFiles = [];
-            convertedAudios = [];
-            renderFileList();
-            renderConvertedFiles();
-            logEl.innerHTML = '';
-            log('🧹 Tudo limpo!');
-        });
+                let statusHtml = '<div style="font-size:12px">';
+                for (const [feature, supported] of Object.entries(checks)) {
+                    const icon = supported ? '✅' : '❌';
+                    const color = supported ? '#059669' : '#dc2626';
+                    statusHtml += `<div style="color:${color}">${icon} ${feature}</div>`;
+                    log(`${icon} ${feature}: ${supported ? 'OK' : 'NÃO SUPORTADO'}`, supported ? 'success' : 'error');
+                }
+                statusHtml += '</div>';
+                elements.systemStatus.innerHTML = statusHtml;
+
+                if (!window.SharedArrayBuffer) {
+                    log('⚠️ SharedArrayBuffer não disponível - isso pode causar problemas!', 'warning');
+                }
+
+                return Object.values(checks).every(Boolean);
+            } catch (err) {
+                log(`❌ Erro na verificação do sistema: ${err.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Teste do FFmpeg
+        async function testFFmpeg() {
+            try {
+                log('🧪 Testando FFmpeg...');
+                setFFmpegLog('Iniciando teste...');
+                
+                if (!ffmpeg) {
+                    await initFFmpeg();
+                }
+
+                log('📝 Criando arquivo de teste...');
+                await ffmpeg.exec([
+                    '-f', 'lavfi',
+                    '-i', 'sine=frequency=1000:duration=1',
+                    '-acodec', 'mp3',
+                    '-b:a', '128k',
+                    'test.mp3'
+                ]);
+
+                const testData = await ffmpeg.readFile('test.mp3');
+                log(`✅ Teste OK! Gerado: ${testData.length} bytes`, 'success');
+                
+                await ffmpeg.deleteFile('test.mp3');
+                setFFmpegLog('✅ FFmpeg funcionando!');
+                return true;
+                
+            } catch (err) {
+                log(`❌ Teste FFmpeg falhou: ${err.message}`, 'error');
+                setFFmpegLog(`❌ Erro: ${err.message}`);
+                return false;
+            }
+        }
+
+        // Inicializar FFmpeg
+        async function initFFmpeg() {
+            if (ffmpeg) return ffmpeg;
+            
+            try {
+                log('🔄 Inicializando FFmpeg via CDN...');
+                
+                // Importar dinamicamente
+                const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
+                const { toBlobURL } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
+                
+                ffmpeg = new FFmpeg();
+                
+                // Configurar logs
+                ffmpeg.on('log', ({ type, message }) => {
+                    if (message.includes('frame=') || message.includes('time=') || message.includes('size=')) {
+                        setFFmpegLog(message.trim());
+                    }
+                    console.log(`[FFmpeg ${type}] ${message}`);
+                });
+
+                ffmpeg.on('progress', (progress) => {
+                    if (progress.ratio > 0) {
+                        setFFmpegLog(`Progresso: ${(progress.ratio * 100).toFixed(1)}%`);
+                    }
+                });
+
+                // Carregar FFmpeg
+                log('📦 Baixando core do FFmpeg...');
+                const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+                
+                await ffmpeg.load({
+                    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                });
+
+                log('✅ FFmpeg carregado com sucesso!', 'success');
+                return ffmpeg;
+                
+            } catch (err) {
+                log(`❌ Falha ao carregar FFmpeg: ${err.message}`, 'error');
+                console.error('Erro completo FFmpeg:', err);
+                throw err;
+            }
+        }
 
         // Seleção de arquivos
-        videoInput.addEventListener('change', e => {
+        elements.videoInput.addEventListener('change', e => {
             selectedFiles = Array.from(e.target.files);
             renderFileList();
-            log(`📁 ${selectedFiles.length} arquivo(s) selecionado(s)`);
+            log(`📁 Selecionados: ${selectedFiles.length} arquivo(s)`);
         });
 
         function renderFileList() {
-            fileList.innerHTML = '';
             if (selectedFiles.length === 0) {
-                fileList.innerHTML = '<div style="color:#64748b;font-style:italic">Nenhum arquivo selecionado</div>';
+                elements.fileList.innerHTML = '<div style="color:#64748b;font-style:italic">Nenhum arquivo</div>';
                 return;
             }
 
-            selectedFiles.forEach((file, idx) => {
-                const item = document.createElement('div');
-                item.className = 'file-item';
-                item.innerHTML = `
+            elements.fileList.innerHTML = selectedFiles.map((file, idx) => `
+                <div class="file-item">
                     <div class="file-meta">
                         <strong>${file.name}</strong><br>
-                        <small>📏 ${(file.size/1024/1024).toFixed(2)} MB • 🎬 ${file.type || 'Tipo desconhecido'}</small>
+                        <small>📏 ${(file.size/1024/1024).toFixed(2)} MB • 🎬 ${file.type}</small>
                     </div>
-                    <button onclick="convertSingle(${idx})" class="ghost small">🎵 Converter este</button>
-                `;
-                fileList.appendChild(item);
-            });
+                </div>
+            `).join('');
         }
 
         function renderConvertedFiles() {
             if (convertedAudios.length === 0) {
-                convertedFiles.style.display = 'none';
+                elements.convertedFiles.style.display = 'none';
                 return;
             }
 
-            convertedFiles.style.display = 'block';
-            convertedList.innerHTML = '';
-
-            convertedAudios.forEach((audio, idx) => {
-                const item = document.createElement('div');
-                item.className = 'converted-item';
-                item.innerHTML = `
+            elements.convertedFiles.style.display = 'block';
+            elements.convertedList.innerHTML = convertedAudios.map((audio, idx) => `
+                <div class="converted-item">
                     <div class="converted-header">
                         <div class="converted-name">🎵 ${audio.name}</div>
                         <div class="converted-size">${(audio.size/1024/1024).toFixed(2)} MB</div>
                     </div>
                     <audio controls class="audio-player">
                         <source src="${audio.url}" type="audio/mpeg">
-                        Seu navegador não suporta o elemento de áudio.
                     </audio>
                     <div class="converted-controls">
                         <button onclick="downloadAudio(${idx})" class="success small">💾 Download</button>
-                        <button onclick="saveToFolder(${idx})" class="ghost small">📁 Salvar na Pasta</button>
                         <button onclick="removeAudio(${idx})" class="warning small">🗑️ Remover</button>
                     </div>
-                `;
-                convertedList.appendChild(item);
-            });
+                </div>
+            `).join('');
         }
 
-        // Funções globais para os botões
-        window.convertSingle = async (idx) => {
-            await convertFiles([selectedFiles[idx]]);
-        };
-
+        // Funções globais
         window.downloadAudio = (idx) => {
             const audio = convertedAudios[idx];
             const a = document.createElement('a');
             a.href = audio.url;
             a.download = audio.name;
             a.click();
-            log(`💾 Download iniciado: ${audio.name}`);
-        };
-
-        window.saveToFolder = async (idx) => {
-            if (!selectedFolder) {
-                alert('Primeiro escolha uma pasta!');
-                return;
-            }
-            
-            try {
-                const audio = convertedAudios[idx];
-                const response = await fetch(audio.url);
-                const blob = await response.blob();
-                
-                const fileHandle = await selectedFolder.getFileHandle(audio.name, { create: true });
-                const writable = await fileHandle.createWritable();
-                await writable.write(blob);
-                await writable.close();
-                
-                log(`✅ Salvo na pasta: ${audio.name}`);
-            } catch (err) {
-                log(`❌ Erro ao salvar: ${err.message}`);
-            }
+            log(`💾 Download: ${audio.name}`);
         };
 
         window.removeAudio = (idx) => {
@@ -276,136 +336,147 @@
             log(`🗑️ Removido: ${audio.name}`);
         };
 
-        async function initFFmpeg() {
-            if (ffmpeg) return;
-            
-            try {
-                log('🔄 Carregando FFmpeg...');
-                ffmpeg = new FFmpeg();
-                
-                ffmpeg.on('log', ({ message }) => {
-                    if (message.includes('frame=') || message.includes('time=')) {
-                        setProgress(message.trim());
-                    }
-                });
-
-                // AQUI ESTÁ A ALTERAÇÃO: APONTA PARA A PASTA LOCAL
-                const baseURL = './ffmpeg/';
-                await ffmpeg.load({
-                    coreURL: `${baseURL}ffmpeg-core.js`,
-                    wasmURL: `${baseURL}ffmpeg-core.wasm`,
-                });
-                
-                log('✅ FFmpeg carregado!');
-            } catch (err) {
-                log(`❌ Erro ao carregar FFmpeg: ${err.message}`);
-                throw err;
-            }
-        }
-
-        // Converter arquivos
-        convertBtn.addEventListener('click', async () => {
-            if (selectedFiles.length === 0) {
-                alert('Selecione pelo menos um vídeo!');
-                return;
-            }
-            await convertFiles(selectedFiles);
-        });
-
+        // Conversão
         async function convertFiles(files) {
             if (isConverting) {
-                log('⚠️ Conversão já em andamento...');
+                log('⚠️ Conversão em andamento...', 'warning');
                 return;
             }
 
             try {
                 isConverting = true;
-                convertBtn.disabled = true;
+                elements.convertBtn.disabled = true;
+                elements.convertSingleBtn.disabled = true;
                 
-                await initFFmpeg();
+                log(`🚀 Iniciando conversão de ${files.length} arquivo(s)...`);
                 
+                // Garantir que FFmpeg está carregado
+                if (!ffmpeg) {
+                    await initFFmpeg();
+                }
+
+                // Importar fetchFile
+                const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
+
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    log(`🎬 [${i+1}/${files.length}] Convertendo: ${file.name}`);
+                    log(`\n🎬 [${i+1}/${files.length}] Processando: ${file.name}`);
                     
-                    const inputName = `input_${Date.now()}.${file.name.split('.').pop()}`;
-                    const outputName = `output_${Date.now()}.mp3`;
-                    
-                    // Carregar arquivo
-                    setProgress('📥 Carregando arquivo...');
-                    await ffmpeg.writeFile(inputName, await fetchFile(file));
-                    
-                    // Converter
-                    const bitrate = bitrateSelect.value;
-                    setProgress('🎵 Convertendo para MP3...');
-                    
-                    await ffmpeg.exec([
-                        '-i', inputName,
-                        '-vn',
-                        '-acodec', 'mp3',
-                        '-b:a', `${bitrate}k`,
-                        '-ar', '44100',
-                        outputName
-                    ]);
+                    try {
+                        // Gerar nomes seguros
+                        const timestamp = Date.now() + i;
+                        const ext = file.name.split('.').pop().toLowerCase();
+                        const inputName = `input_${timestamp}.${ext}`;
+                        const outputName = `output_${timestamp}.mp3`;
 
-                    // Ler resultado
-                    const data = await ffmpeg.readFile(outputName);
-                    const blob = new Blob([data], { type: 'audio/mpeg' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const audioName = file.name.replace(/\.[^/.]+$/, '') + '.mp3';
-                    const audioObj = {
-                        name: audioName,
-                        url: url,
-                        size: data.length,
-                        blob: blob
-                    };
+                        log(`📥 Carregando arquivo (${(file.size/1024/1024).toFixed(2)}MB)...`);
+                        setFFmpegLog('Carregando arquivo...');
+                        
+                        const fileData = await fetchFile(file);
+                        await ffmpeg.writeFile(inputName, fileData);
+                        
+                        log(`✅ Arquivo carregado: ${fileData.length} bytes`);
+                        log(`🎵 Convertendo para MP3...`);
+                        setFFmpegLog('Iniciando conversão...');
 
-                    // Salvar conforme o modo escolhido
-                    const saveMode = getSaveMode();
-                    
-                    if (saveMode === 'download') {
-                        // Download automático
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = audioName;
-                        a.click();
-                        log(`💾 Download automático: ${audioName}`);
-                        URL.revokeObjectURL(url); // Limpar URL após download
-                    } else if (saveMode === 'choosefolder' && selectedFolder) {
-                        // Salvar na pasta escolhida
-                        const fileHandle = await selectedFolder.getFileHandle(audioName, { create: true });
-                        const writable = await fileHandle.createWritable();
-                        await writable.write(blob);
-                        await writable.close();
-                        log(`📁 Salvo na pasta: ${audioName}`);
-                        URL.revokeObjectURL(url);
-                    } else {
-                        // Manter no navegador
-                        convertedAudios.push(audioObj);
-                        log(`🎵 Adicionado ao player: ${audioName}`);
+                        // Comando de conversão
+                        const bitrate = elements.bitrate.value;
+                        const command = [
+                            '-i', inputName,
+                            '-vn',
+                            '-acodec', 'libmp3lame',
+                            '-b:a', `${bitrate}k`,
+                            '-ar', '44100',
+                            '-ac', '2',
+                            outputName
+                        ];
+
+                        log(`💻 Executando: ffmpeg ${command.join(' ')}`);
+                        await ffmpeg.exec(command);
+
+                        // Verificar resultado
+                        const outputData = await ffmpeg.readFile(outputName);
+                        if (outputData.length === 0) {
+                            throw new Error('Arquivo de saída vazio');
+                        }
+
+                        log(`✅ Conversão OK: ${outputData.length} bytes`);
+
+                        // Criar blob e salvar
+                        const blob = new Blob([outputData], { type: 'audio/mpeg' });
+                        const url = URL.createObjectURL(blob);
+                        const audioName = file.name.replace(/\.[^/.]+$/, '') + '.mp3';
+
+                        const saveMode = getSaveMode();
+                        if (saveMode === 'download') {
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = audioName;
+                            a.click();
+                            log(`💾 Download automático: ${audioName}`, 'success');
+                            URL.revokeObjectURL(url);
+                        } else {
+                            convertedAudios.push({
+                                name: audioName,
+                                url: url,
+                                size: outputData.length,
+                                blob: blob
+                            });
+                            log(`🎵 Adicionado ao player: ${audioName}`, 'success');
+                        }
+
+                        // Limpeza
+                        await ffmpeg.deleteFile(inputName);
+                        await ffmpeg.deleteFile(outputName);
+
+                    } catch (fileErr) {
+                        log(`❌ Erro no arquivo ${file.name}: ${fileErr.message}`, 'error');
+                        console.error('Erro detalhado:', fileErr);
                     }
-
-                    // Limpeza
-                    await ffmpeg.deleteFile(inputName);
-                    await ffmpeg.deleteFile(outputName);
                 }
-                
+
                 renderConvertedFiles();
-                log(`🎉 Conversão concluída!`);
-                setProgress('✅ Pronto!');
-                
+                log(`🎉 Processo concluído!`, 'success');
+                setFFmpegLog('Concluído!');
+
             } catch (err) {
-                log(`❌ Erro: ${err.message}`);
-                setProgress('❌ Erro na conversão');
+                log(`❌ Erro geral: ${err.message}`, 'error');
+                console.error('Erro completo:', err);
+                setFFmpegLog(`Erro: ${err.message}`);
             } finally {
                 isConverting = false;
-                convertBtn.disabled = false;
+                elements.convertBtn.disabled = false;
+                elements.convertSingleBtn.disabled = false;
             }
         }
 
-        // Log inicial
-        log('🚀 Conversor carregado e pronto!');
+        // Event listeners
+        elements.testSystemBtn.addEventListener('click', checkSystem);
+        elements.testFFmpegBtn.addEventListener('click', testFFmpeg);
+        elements.clearLogsBtn.addEventListener('click', () => {
+            elements.log.innerHTML = '';
+            elements.ffmpegLog.textContent = 'Logs limpos...';
+        });
+
+        elements.convertBtn.addEventListener('click', () => {
+            if (selectedFiles.length === 0) {
+                alert('Selecione pelo menos um vídeo!');
+                return;
+            }
+            convertFiles(selectedFiles);
+        });
+
+        elements.convertSingleBtn.addEventListener('click', () => {
+            if (selectedFiles.length === 0) {
+                alert('Selecione um vídeo!');
+                return;
+            }
+            convertFiles([selectedFiles[0]]);
+        });
+
+        // Inicialização
+        log('🚀 Sistema carregado!');
+        checkSystem();
     </script>
 </body>
 </html>
