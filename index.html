@@ -5,57 +5,322 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Extrator e Conversor de Áudio</title>
     <style>
-        :root{font-family:Inter, system-ui, Arial; --accent:#0b84ff}
-        body{background:#f4f7fb;color:#111;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-        .card{width:100%;max-width:1000px;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(8,30,60,0.07);padding:20px}
-        h1{font-size:20px;margin:0 0 8px}
-        p.lead{color:#4b5563;margin:0 0 18px}
-        .alert{padding:12px;border-radius:8px;margin:15px 0}
-        .alert-error{background:#fee2e2;border-left:4px solid #dc2626;color:#991b1b}
-        .alert-warning{background:#fef3c7;border-left:4px solid #d97706;color:#92400e}
-        .alert-success{background:#dcfce7;border-left:4px solid #16a34a;color:#166534}
-        .alert-info{background:#dbeafe;border-left:4px solid #2563eb;color:#1e40af}
-        .row{display:flex;gap:12px;flex-wrap:wrap}
-        .col{flex:1 1 240px}
-        label{display:block;font-size:13px;margin-bottom:6px;font-weight:500}
-        input[type=file]{display:none;}
-        button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px}
-        button:disabled{background:#94a3b8;cursor:not-allowed}
-        button.ghost{background:transparent;color:var(--accent);border:1px solid #e6eefb}
-        button.success{background:#16a34a}
-        button.warning{background:#d97706}
-        button.error{background:#dc2626}
-        pre{background:#0b1220;color:#dbeafe;padding:12px;border-radius:8px;overflow:auto;font-size:11px;max-height:200px}
-        .log{height:140px;overflow:auto;margin-top:10px;background:#0f1724;color:#d1fae5;padding:10px;border-radius:8px;font-size:11px}
-        .log .error{color:#fca5a5}
-        .log .success{color:#86efac}
-        .log .warning{color:#fcd34d}
-        .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-        .small{font-size:12px}
-        .file-list{margin-top:10px}
-        .file-item{padding:10px;border-radius:8px;background:#f8fafc;margin-bottom:8px;border:1px solid #e2e8f0; position: relative;}
-        .file-meta{font-size:13px;color:#334155;margin-bottom:8px}
-        .converted-files{margin-top:15px}
-        .converted-item{padding:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:10px}
-        .converted-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-        .converted-name{font-weight:500;color:#166534}
-        .converted-size{font-size:12px;color:#16a34a}
-        .converted-controls{display:flex;gap:6px;flex-wrap:wrap}
-        footer{margin-top:12px;font-size:12px;color:#64748b}
-        .audio-player{width:100%;margin-top:8px}
-        .progress-bar{width:100%;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;margin:10px 0}
-        .progress-fill{height:100%;background:#16a34a;transition:width 0.3s}
-        .method-selector{background:#f0f9ff;padding:15px;border-radius:8px;margin:15px 0;border:1px solid #0ea5e9}
-        .method-option{margin:10px 0;padding:10px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer}
-        .method-option.selected{border-color:#0b84ff;background:#f0f9ff}
-        .method-option h4{margin:0 0 5px;color:#1e40af}
-        .method-option p{margin:0;font-size:12px;color:#64748b}
-        .drop-area{border:2px dashed #ccc; padding: 20px; text-align: center; font-size: 16px; color: #666; margin-bottom: 15px; border-radius: 8px; cursor: pointer;}
-        .drop-area.highlight{border-color: #0b84ff; background-color: #e6eefb;}
+        :root {
+            --primary: #007bff;
+            --primary-dark: #0056b3;
+            --success: #28a745;
+            --success-dark: #1e7e34;
+            --warning: #ffc107;
+            --warning-dark: #d39e00;
+            --danger: #dc3545;
+            --danger-dark: #c82333;
+            --info: #17a2b8;
+            --info-dark: #117a8b;
+            --bg-light: #f8f9fa;
+            --bg-dark: #343a40;
+            --text-dark: #212529;
+            --text-light: #f8f9fa;
+            --border-color: #dee2e6;
+            --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 8px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        p.lead {
+            color: #6c757d;
+            margin: 0 0 20px;
+            font-size: 1.1rem;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid var(--warning);
+            color: #856404;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border-left: 4px solid var(--info);
+            color: #0c5460;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+            }
+        }
+        
+        .col {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .drop-area {
+            border: 2px dashed var(--border-color);
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .drop-area:hover, .drop-area.highlight {
+            border-color: var(--primary);
+            background-color: #e9f5ff;
+            color: var(--primary-dark);
+        }
+        
+        input[type=file] {
+            display: none;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background-color: #fff;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        .btn-secondary:hover { background-color: var(--primary-dark); color: #fff; }
+
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+        .btn-success:hover { background-color: var(--success-dark); }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover { background-color: var(--danger-dark); }
+        
+        .btn-disabled, .btn:disabled {
+            background-color: #adb5bd;
+            cursor: not-allowed;
+            color: #fff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .log {
+            height: 150px;
+            overflow: auto;
+            margin-top: 15px;
+            background: #212529;
+            color: #d1fae5;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .log .error { color: #dc3545; }
+        .log .success { color: #28a745; }
+        .log .warning { color: #ffc107; }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            padding: 15px;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-meta {
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .converted-files {
+            margin-top: 30px;
+        }
+
+        .converted-item {
+            padding: 15px;
+            background-color: #e2f9e4;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .converted-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .converted-name {
+            font-weight: 600;
+            color: var(--success-dark);
+        }
+
+        .converted-size {
+            font-size: 0.8rem;
+            color: var(--success-dark);
+        }
+
+        .converted-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .method-selector {
+            background-color: #e9f5ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid var(--primary);
+        }
+
+        .method-option {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .method-option.selected {
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        .method-option h4 {
+            margin: 0 0 5px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .method-option p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        footer {
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
+    <div class="container">
         <h1>🎵 Extrator e Conversor de Áudio</h1>
         <p class="lead">Extraia o áudio de vídeos e arquivos de áudio diretamente no seu navegador.</p>
 
@@ -63,36 +328,35 @@
             <strong>⚠️ Limitação:</strong> Seu navegador não suporta SharedArrayBuffer. Por isso, a extração de áudio é feita usando APIs nativas, e o áudio de saída será no formato **WAV**.
         </div>
 
+        <div class="alert alert-info">
+            <strong>💡 Dica:</strong> Os arquivos convertidos são salvos neste navegador. Eles não serão perdidos se você recarregar a página!
+        </div>
+
         <div class="method-selector">
-            <h3>📁 Opções de salvamento:</h3>
+            <h3>🔧 Modo de Conversão:</h3>
             
-            <div class="method-option selected" data-save="browser">
-                <h4>🎵 Manter no Navegador</h4>
-                <p>Arquivos ficam aqui para tocar e baixar depois. Não ocupa espaço no disco.</p>
+            <div class="method-option selected" data-mode="individual">
+                <h4>🗂️ Individual</h4>
+                <p>Processa cada arquivo separadamente, gerando um arquivo de saída para cada um.</p>
             </div>
             
-            <div class="method-option" data-save="download">
-                <h4>💾 Download Automático</h4>
-                <p>Baixa automaticamente para a pasta Downloads após a conversão.</p>
-            </div>
-            
-            <div class="method-option" data-save="folder">
-                <h4>📂 Escolher Pasta Externa</h4>
-                <p>Salva direto numa pasta específica que você escolher (Chrome/Edge).</p>
+            <div class="method-option" data-mode="merged">
+                <h4>🔗 Mesclado (Merge)</h4>
+                <p>Combina todos os arquivos selecionados em um único arquivo de áudio de saída.</p>
             </div>
         </div>
 
-        <div class="method-selector" style="background:#f8fafc;border-color:#64748b">
-            <h3>🔧 Método de conversão:</h3>
+        <div class="method-selector">
+            <h3>🔨 Método de extração:</h3>
             
             <div class="method-option selected" data-method="web-audio">
                 <h4>🎵 Web Audio API (Recomendado)</h4>
-                <p>Extrai áudio usando APIs nativas do navegador. Ideal para a maioria dos arquivos de áudio e vídeo.</p>
+                <p>Extrai áudio usando as APIs nativas do navegador. Ideal para a maioria dos arquivos de áudio e vídeo.</p>
             </div>
             
             <div class="method-option" data-method="media-recorder">
                 <h4>📹 Media Recorder API</h4>
-                <p>Reproduz o vídeo silenciosamente e grava o áudio. Pode ser mais lento, mas funciona como uma alternativa.</p>
+                <p>Reproduz o vídeo silenciosamente e grava o áudio. Pode ser mais lento, mas funciona como uma alternativa robusta.</p>
             </div>
         </div>
 
@@ -105,8 +369,8 @@
                 <input id="videoInput" type="file" accept="video/*,audio/*" multiple />
 
                 <div style="margin-top:10px">
-                    <label class="small">🎚️ Qualidade de saída</label>
-                    <select id="quality">
+                    <label>🎚️ Qualidade de saída</label>
+                    <select id="quality" class="form-control">
                         <option value="0.7">Qualidade Padrão</option>
                         <option value="0.9" selected>Alta Qualidade</option>
                         <option value="1.0">Máxima Qualidade</option>
@@ -114,9 +378,9 @@
                 </div>
 
                 <div class="controls">
-                    <button id="convertBtn">🎵 Converter</button>
-                    <button id="chooseFolderBtn" class="ghost">📂 Escolher Pasta</button>
-                    <button id="clearBtn" class="warning small">🗑️ Limpar</button>
+                    <button id="convertBtn" class="btn btn-primary">🎵 Converter</button>
+                    <button id="clearBtn" class="btn btn-danger">🗑️ Limpar</button>
+                    <button id="clearDBBtn" class="btn btn-danger">🗑️ Limpar Armazenamento</button>
                 </div>
 
                 <div class="file-list" id="fileList"></div>
@@ -126,12 +390,12 @@
                 <label>📊 Status</label>
                 <div class="log" id="log"></div>
 
-                <div style="margin-top:10px">
+                <div style="margin-top:20px">
                     <label>⚙️ Progresso</label>
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill" style="width:0%"></div>
                     </div>
-                    <div id="progressText" style="font-size:11px;color:#64748b">Aguardando...</div>
+                    <div id="progressText" style="font-size:0.85rem;color:#6c757d">Aguardando...</div>
                 </div>
             </div>
         </div>
@@ -142,8 +406,8 @@
         </div>
 
         <footer>
-            <strong>🔍 Método ativo:</strong> <span id="currentMethod">Web Audio API</span><br>
-            <strong>💾 Salvamento:</strong> <span id="currentSave">Manter no Navegador</span>
+            <strong>🔧 Modo de Conversão:</strong> <span id="currentMode">Individual</span><br>
+            <strong>🔨 Método de Extração:</strong> <span id="currentMethod">Web Audio API</span>
         </footer>
     </div>
 
@@ -152,24 +416,27 @@
         let convertedAudios = [];
         let processingQueue = [];
         let isProcessing = false;
-        let currentMethod = 'web-audio';
-        let saveMode = 'browser';
-        let selectedFolder = null;
+        let conversionMode = 'individual';
+        let extractionMethod = 'web-audio';
+        let db;
+
+        const DB_NAME = 'audio-converter-db';
+        const STORE_NAME = 'converted-audios';
 
         const elements = {
             videoInput: document.getElementById('videoInput'),
             fileList: document.getElementById('fileList'),
             convertBtn: document.getElementById('convertBtn'),
-            chooseFolderBtn: document.getElementById('chooseFolderBtn'),
             clearBtn: document.getElementById('clearBtn'),
+            clearDBBtn: document.getElementById('clearDBBtn'),
             log: document.getElementById('log'),
             progressFill: document.getElementById('progressFill'),
             progressText: document.getElementById('progressText'),
             quality: document.getElementById('quality'),
             convertedFiles: document.getElementById('convertedFiles'),
             convertedList: document.getElementById('convertedList'),
+            currentMode: document.getElementById('currentMode'),
             currentMethod: document.getElementById('currentMethod'),
-            currentSave: document.getElementById('currentSave'),
             dropArea: document.getElementById('dropArea')
         };
 
@@ -187,30 +454,84 @@
             elements.progressText.textContent = text;
         }
 
-        // Seleção de método e modo de salvamento
+        // IndexedDB Functions
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                };
+
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve();
+                };
+
+                request.onerror = (event) => {
+                    reject(event.target.error);
+                };
+            });
+        }
+
+        async function saveAudioToDB(audioData) {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const id = `audio-${Date.now()}`;
+            const dataToSave = {
+                id: id,
+                name: audioData.name,
+                size: audioData.size,
+                blob: audioData.blob
+            };
+            await store.put(dataToSave);
+            return dataToSave;
+        }
+
+        async function getAudiosFromDB() {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.getAll();
+            return new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function deleteAudioFromDB(id) {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            await store.delete(id);
+        }
+
+        async function clearDB() {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            await store.clear();
+        }
+
+        // UI Functions
         document.querySelectorAll('.method-option').forEach(option => {
             option.addEventListener('click', () => {
                 const parent = option.parentElement;
                 parent.querySelector('.method-option.selected')?.classList.remove('selected');
                 option.classList.add('selected');
                 
-                if (option.dataset.method) {
-                    currentMethod = option.dataset.method;
-                    elements.currentMethod.textContent = option.querySelector('h4').textContent;
-                    log(`Método alterado: ${option.querySelector('h4').textContent}`);
+                if (option.dataset.mode) {
+                    conversionMode = option.dataset.mode;
+                    elements.currentMode.textContent = option.querySelector('h4').textContent;
+                    log(`Modo de conversão alterado: ${option.querySelector('h4').textContent}`);
                 }
                 
-                if (option.dataset.save) {
-                    saveMode = option.dataset.save;
-                    elements.currentSave.textContent = option.querySelector('h4').textContent;
-                    log(`Salvamento alterado: ${option.querySelector('h4').textContent}`);
-                    
-                    elements.chooseFolderBtn.style.display = saveMode === 'folder' ? 'inline-block' : 'none';
+                if (option.dataset.method) {
+                    extractionMethod = option.dataset.method;
+                    elements.currentMethod.textContent = option.querySelector('h4').textContent;
+                    log(`Método de extração alterado: ${option.querySelector('h4').textContent}`);
                 }
             });
         });
 
-        // Drag-and-Drop
         elements.dropArea.addEventListener('click', () => elements.videoInput.click());
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             elements.dropArea.addEventListener(eventName, e => {
@@ -233,7 +554,6 @@
             log(`📁 ${selectedFiles.length} arquivo(s) selecionado(s) via arrastar e soltar`);
         }, false);
 
-        // Seleção de arquivos
         elements.videoInput.addEventListener('change', e => {
             selectedFiles = Array.from(e.target.files);
             renderFileList();
@@ -242,7 +562,7 @@
 
         function renderFileList() {
             if (selectedFiles.length === 0) {
-                elements.fileList.innerHTML = '<div style="color:#64748b;font-style:italic">Nenhum arquivo</div>';
+                elements.fileList.innerHTML = '<div style="color:#6c757d;font-style:italic;padding:15px;text-align:center;">Nenhum arquivo</div>';
                 return;
             }
 
@@ -273,9 +593,8 @@
                         <source src="${audio.url}" type="audio/wav">
                     </audio>
                     <div class="converted-controls">
-                        <button onclick="downloadAudio(${idx})" class="success small">💾 Download</button>
-                        <button onclick="saveToFolder(${idx})" class="ghost small" style="display:${selectedFolder ? 'inline-block' : 'none'}">📂 Salvar na Pasta</button>
-                        <button onclick="removeAudio(${idx})" class="warning small">🗑️ Remover</button>
+                        <button onclick="downloadAudio(${idx})" class="btn btn-success">💾 Baixar</button>
+                        <button onclick="removeAudio(${idx})" class="btn btn-danger">🗑️ Remover</button>
                     </div>
                 </div>
             `).join('');
@@ -290,90 +609,38 @@
             log(`💾 Download: ${audio.name}`);
         };
 
-        window.saveToFolder = async (idx) => {
-            if (!selectedFolder) {
-                alert('Primeiro escolha uma pasta!');
-                return;
-            }
-            
-            try {
-                const audio = convertedAudios[idx];
-                const fileHandle = await selectedFolder.getFileHandle(audio.name, { create: true });
-                const writable = await fileHandle.createWritable();
-                await writable.write(audio.blob);
-                await writable.close();
-                
-                log(`✅ Salvo na pasta: ${audio.name}`, 'success');
-            } catch (err) {
-                log(`❌ Erro ao salvar na pasta: ${err.message}`, 'error');
-            }
-        };
-
-        window.removeAudio = (idx) => {
+        window.removeAudio = async (idx) => {
             const audio = convertedAudios[idx];
             URL.revokeObjectURL(audio.url);
+            
+            await deleteAudioFromDB(audio.id);
             convertedAudios.splice(idx, 1);
+            
             renderConvertedFiles();
             log(`🗑️ Removido: ${audio.name}`);
         };
 
-        // Método 1: Web Audio API
-        async function convertWithWebAudio(file) {
+        async function extractAudio(file) {
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                
-                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-                
+                return await audioContext.decodeAudioData(arrayBuffer);
+            } catch (err) {
+                throw new Error(`Extração de áudio falhou: ${err.message}`);
+            }
+        }
+
+        async function convertWithWebAudio(file) {
+            try {
+                const audioBuffer = await extractAudio(file);
                 const wav = audioBufferToWav(audioBuffer);
                 const blob = new Blob([wav], { type: 'audio/wav' });
-                
                 return blob;
-                
             } catch (err) {
                 throw new Error(`Web Audio falhou: ${err.message}`);
             }
         }
 
-        // Método 2: Media Recorder API
-        async function convertWithMediaRecorder(file) {
-            try {
-                return new Promise((resolve, reject) => {
-                    const video = document.createElement('video');
-                    video.src = URL.createObjectURL(file);
-                    video.muted = true;
-                    
-                    const stream = video.captureStream();
-                    const mediaRecorder = new MediaRecorder(stream, {
-                        mimeType: 'audio/webm'
-                    });
-                    
-                    const chunks = [];
-                    
-                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const blob = new Blob(chunks, { type: 'audio/webm' });
-                        resolve(blob);
-                    };
-                    
-                    video.onloadedmetadata = () => {
-                        video.play();
-                        mediaRecorder.start();
-                        
-                        video.onended = () => {
-                            mediaRecorder.stop();
-                        };
-                    };
-                    
-                    video.onerror = reject;
-                });
-                
-            } catch (err) {
-                throw new Error(`Media Recorder falhou: ${err.message}`);
-            }
-        }
-
-        // Converter AudioBuffer para WAV
         function audioBufferToWav(buffer) {
             const length = buffer.length;
             const numberOfChannels = buffer.numberOfChannels;
@@ -413,135 +680,176 @@
             return arrayBuffer;
         }
 
-        async function processNextFileInQueue() {
-            if (processingQueue.length === 0) {
-                isProcessing = false;
-                elements.convertBtn.disabled = false;
-                elements.convertBtn.textContent = '🎵 Converter';
-                setProgress(100, 'Concluído!');
-                log('🎉 Processamento finalizado!', 'success');
-                renderConvertedFiles();
-                return;
-            }
+        async function processIndividualFiles() {
+            while (processingQueue.length > 0) {
+                const file = processingQueue.shift();
+                const fileIndex = selectedFiles.findIndex(f => f === file);
+                const totalFiles = selectedFiles.length;
 
-            const file = processingQueue.shift();
-            const fileIndex = selectedFiles.findIndex(f => f === file);
-            const totalFiles = selectedFiles.length;
+                setProgress(((totalFiles - processingQueue.length) / totalFiles) * 100, `Processando ${file.name} (${fileIndex + 1} de ${totalFiles})...`);
+                log(`🔄 Processando ${file.name} individualmente...`);
 
-            setProgress(((totalFiles - processingQueue.length) / totalFiles) * 100, `Processando ${file.name} (${fileIndex + 1} de ${totalFiles})...`);
-            log(`🔄 Processando ${file.name}...`);
-            
-            try {
-                let resultBlob;
-                switch (currentMethod) {
-                    case 'web-audio':
-                        resultBlob = await convertWithWebAudio(file);
-                        break;
-                    case 'media-recorder':
-                        resultBlob = await convertWithMediaRecorder(file);
-                        break;
-                }
-                
-                const url = URL.createObjectURL(resultBlob);
-                const name = file.name.replace(/\.[^/.]+$/, '') + '.wav';
-                
-                if (saveMode === 'download') {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = name;
-                    a.click();
-                    log(`✅ Download automático: ${name}`, 'success');
-                    URL.revokeObjectURL(url);
+                try {
+                    const resultBlob = await convertWithWebAudio(file);
+                    const name = file.name.replace(/\.[^/.]+$/, '') + '.wav';
                     
-                } else if (saveMode === 'folder' && selectedFolder) {
-                    try {
-                        const fileHandle = await selectedFolder.getFileHandle(name, { create: true });
-                        const writable = await fileHandle.createWritable();
-                        await writable.write(resultBlob);
-                        await writable.close();
-                        log(`📂 Salvo na pasta: ${name}`, 'success');
-                        URL.revokeObjectURL(url);
-                    } catch (folderErr) {
-                        log(`❌ Erro ao salvar na pasta, fazendo download: ${folderErr.message}`, 'warning');
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = name;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                    }
-                } else {
-                    convertedAudios.push({
+                    const savedAudio = await saveAudioToDB({
                         name: name,
-                        url: url,
                         size: resultBlob.size,
                         blob: resultBlob
                     });
-                    log(`🎵 Adicionado ao navegador: ${name}`, 'success');
+
+                    convertedAudios.push({
+                        ...savedAudio,
+                        url: URL.createObjectURL(savedAudio.blob)
+                    });
+
+                    log(`🎵 Adicionado ao armazenamento: ${name}`, 'success');
+                    
+                } catch (err) {
+                    log(`❌ Erro em ${file.name}: ${err.message}`, 'error');
                 }
-                
-            } catch (err) {
-                log(`❌ Erro em ${file.name}: ${err.message}`, 'error');
             }
 
-            // Processa o próximo arquivo na fila
-            processNextFileInQueue();
+            isProcessing = false;
+            elements.convertBtn.disabled = false;
+            elements.convertBtn.textContent = '🎵 Converter';
+            setProgress(100, 'Concluído!');
+            log('🎉 Processamento individual finalizado!', 'success');
+            renderConvertedFiles();
         }
 
-        // Event listener para iniciar o processamento
+        async function processMergedFiles() {
+            if (selectedFiles.length === 0) return;
+
+            isProcessing = true;
+            elements.convertBtn.disabled = true;
+            elements.convertBtn.textContent = 'Convertendo...';
+            
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const buffers = [];
+            let totalLength = 0;
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                setProgress(((i / selectedFiles.length) * 100), `Decodificando ${file.name} (${i + 1} de ${selectedFiles.length})...`);
+                log(`🔄 Decodificando ${file.name}...`);
+                try {
+                    const audioBuffer = await audioContext.decodeAudioData(await file.arrayBuffer());
+                    buffers.push(audioBuffer);
+                    totalLength += audioBuffer.length;
+                } catch (err) {
+                    log(`❌ Falha ao decodificar ${file.name}: ${err.message}`, 'error');
+                }
+            }
+
+            setProgress(90, 'Mesclando áudios...');
+            log('🔗 Mesclando todos os áudios...');
+
+            const mergedBuffer = audioContext.createBuffer(
+                buffers[0].numberOfChannels,
+                totalLength,
+                buffers[0].sampleRate
+            );
+            
+            let offset = 0;
+            for (const buffer of buffers) {
+                for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                    mergedBuffer.copyToChannel(buffer.getChannelData(channel), channel, offset);
+                }
+                offset += buffer.length;
+            }
+
+            const wav = audioBufferToWav(mergedBuffer);
+            const blob = new Blob([wav], { type: 'audio/wav' });
+            const name = `audio_mesclado_${Date.now()}.wav`;
+
+            const savedAudio = await saveAudioToDB({
+                name: name,
+                size: blob.size,
+                blob: blob
+            });
+
+            convertedAudios.push({
+                ...savedAudio,
+                url: URL.createObjectURL(savedAudio.blob)
+            });
+
+            isProcessing = false;
+            elements.convertBtn.disabled = false;
+            elements.convertBtn.textContent = '🎵 Converter';
+            setProgress(100, 'Concluído!');
+            log('🎉 Processamento de mesclagem finalizado!', 'success');
+            renderConvertedFiles();
+        }
+
+        async function loadFromDB() {
+            log('🔍 Buscando arquivos no armazenamento local...');
+            try {
+                const audiosFromDB = await getAudiosFromDB();
+                convertedAudios = audiosFromDB.map(audio => ({
+                    ...audio,
+                    url: URL.createObjectURL(audio.blob)
+                }));
+                renderConvertedFiles();
+                if (convertedAudios.length > 0) {
+                    log(`✅ ${convertedAudios.length} arquivo(s) encontrado(s) e carregado(s)!`, 'success');
+                } else {
+                    log('Nenhum arquivo encontrado.');
+                }
+            } catch (err) {
+                log(`❌ Erro ao carregar arquivos: ${err.message}`, 'error');
+            }
+        }
+
         elements.convertBtn.addEventListener('click', () => {
             if (isProcessing) return;
             if (selectedFiles.length === 0) {
                 alert('Selecione arquivos primeiro!');
                 return;
             }
-
-            isProcessing = true;
-            elements.convertBtn.disabled = true;
-            elements.convertBtn.textContent = 'Convertendo...';
-            processingQueue = [...selectedFiles];
-            convertedAudios = [];
-            
-            processNextFileInQueue();
-        });
-
-        // Escolher pasta para salvamento
-        elements.chooseFolderBtn.addEventListener('click', async () => {
-            try {
-                if (!window.showDirectoryPicker) {
-                    alert('Seu navegador não suporta seleção de pastas. Use Chrome ou Edge mais recente.');
+            if (conversionMode === 'individual') {
+                processingQueue = [...selectedFiles];
+                convertedAudios = [];
+                processIndividualFiles();
+            } else if (conversionMode === 'merged') {
+                if (selectedFiles.length < 2) {
+                    alert('Selecione pelo menos 2 arquivos para mesclar!');
                     return;
                 }
-                
-                selectedFolder = await window.showDirectoryPicker();
-                elements.chooseFolderBtn.textContent = `✅ Pasta selecionada`;
-                elements.chooseFolderBtn.classList.add('success');
-                log(`📂 Pasta selecionada: ${selectedFolder.name}`);
-                
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    log(`❌ Erro ao escolher pasta: ${err.message}`, 'error');
-                }
+                convertedAudios = [];
+                processMergedFiles();
             }
         });
 
         elements.clearBtn.addEventListener('click', () => {
-            convertedAudios.forEach(audio => URL.revokeObjectURL(audio.url));
-            convertedAudios = [];
             selectedFiles = [];
             processingQueue = [];
             elements.videoInput.value = '';
             renderFileList();
-            renderConvertedFiles();
             elements.log.innerHTML = '';
             setProgress(0, 'Limpo!');
-            log('🧹 Tudo limpo!');
+            log('🧹 Arquivos de entrada e log limpos.');
+        });
+
+        elements.clearDBBtn.addEventListener('click', async () => {
+            const confirmClear = confirm('Tem certeza de que deseja remover todos os arquivos do armazenamento do navegador?');
+            if (confirmClear) {
+                await clearDB();
+                convertedAudios.forEach(audio => URL.revokeObjectURL(audio.url));
+                convertedAudios = [];
+                renderConvertedFiles();
+                log('🗑️ Todo o armazenamento local foi limpo!', 'success');
+            }
         });
 
         // Inicialização
-        log('🚀 Extrator de áudio carregado!');
-        log('💡 Este sistema não usa FFmpeg, mas extrai o áudio com APIs do navegador no formato WAV.');
-        
-        elements.chooseFolderBtn.style.display = 'none';
+        (async () => {
+            log('🚀 Extrator de áudio carregado!');
+            log('💡 Este sistema não usa FFmpeg, mas extrai o áudio com APIs do navegador no formato WAV.');
+            await openDB();
+            loadFromDB();
+        })();
     </script>
 </body>
 </html>
