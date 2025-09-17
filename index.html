@@ -602,53 +602,94 @@
             };
         }
 
-        // IMPLEMENTAÇÃO CORRIGIDA - Extração de áudio usando APIs nativas
+        // IMPLEMENTAÇÃO CORRIGIDA - Extração de áudio mais eficiente
         async function extractAudioFromVideo(file) {
+            log(`Extraindo áudio de ${file.name}...`, 'info');
+            
+            try {
+                // Método 1: Tentar usar OfflineAudioContext (mais rápido)
+                try {
+                    return await extractAudioUsingOfflineContext(file);
+                } catch (error) {
+                    log(`Método offline falhou, tentando método alternativo...`, 'warning');
+                }
+                
+                // Método 2: Usar MediaRecorder com reprodução acelerada
+                return await extractAudioUsingAcceleratedPlayback(file);
+                
+            } catch (error) {
+                log(`Erro na extração: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Método mais eficiente usando OfflineAudioContext
+        async function extractAudioUsingOfflineContext(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            try {
+                log('Decodificando áudio do vídeo...', 'info');
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                
+                log(`Áudio decodificado: ${audioBuffer.duration.toFixed(1)}s`, 'success');
+                
+                // Converter para WAV
+                const wavData = audioBufferToWav(audioBuffer);
+                const audioBlob = new Blob([wavData], { type: 'audio/wav' });
+                const outputName = file.name.replace(/\.[^/.]+$/, '') + '_audio.wav';
+                
+                return {
+                    name: outputName,
+                    blob: audioBlob,
+                    type: 'audio/wav',
+                    size: audioBlob.size,
+                    originalFile: file.name
+                };
+                
+            } catch (error) {
+                // Se falhar na decodificação direta, o arquivo pode ter vídeo + áudio
+                throw new Error('Não foi possível decodificar áudio diretamente do arquivo');
+            } finally {
+                audioContext.close();
+            }
+        }
+
+        // Método alternativo com reprodução acelerada
+        async function extractAudioUsingAcceleratedPlayback(file) {
             return new Promise((resolve, reject) => {
-                log(`Extraindo áudio de ${file.name}...`, 'info');
-                
                 const video = elements.videoElement;
-                const canvas = elements.canvas;
-                const ctx = canvas.getContext('2d');
-                
-                // Criar URL do objeto
                 const url = URL.createObjectURL(file);
                 video.src = url;
                 
                 video.onloadedmetadata = () => {
                     log(`Duração do vídeo: ${video.duration.toFixed(1)}s`, 'info');
+                    log('Iniciando extração acelerada...', 'info');
                     
-                    // Configurar canvas
-                    canvas.width = 1;
-                    canvas.height = 1;
-                    
-                    // Criar MediaStream a partir do vídeo
-                    const stream = canvas.captureStream(30);
-                    
-                    // Criar contexto de áudio
                     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     const source = audioContext.createMediaElementSource(video);
                     const destination = audioContext.createMediaStreamDestination();
                     source.connect(destination);
                     
-                    // Configurar MediaRecorder para capturar apenas áudio
-                    const options = {
-                        mimeType: 'audio/webm;codecs=opus'
-                    };
-                    
-                    // Fallback para outros formatos se webm não for suportado
-                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                    // Determinar melhor formato suportado
+                    let mimeType = 'audio/webm;codecs=opus';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
                         if (MediaRecorder.isTypeSupported('audio/webm')) {
-                            options.mimeType = 'audio/webm';
+                            mimeType = 'audio/webm';
                         } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                            options.mimeType = 'audio/mp4';
+                            mimeType = 'audio/mp4';
                         } else {
-                            options.mimeType = 'audio/wav';
+                            mimeType = 'audio/wav';
                         }
                     }
                     
-                    const recorder = new MediaRecorder(destination.stream, options);
+                    const recorder = new MediaRecorder(destination.stream, { 
+                        mimeType,
+                        audioBitsPerSecond: 256000 // Qualidade alta
+                    });
+                    
                     const chunks = [];
+                    let progressInterval;
                     
                     recorder.ondataavailable = (event) => {
                         if (event.data.size > 0) {
@@ -657,10 +698,14 @@
                     };
                     
                     recorder.onstop = () => {
-                        const audioBlob = new Blob(chunks, { type: options.mimeType });
-                        const outputName = file.name.replace(/\.[^/.]+$/, '') + '_audio.webm';
+                        clearInterval(progressInterval);
+                        const audioBlob = new Blob(chunks, { type: mimeType });
+                        const extension = mimeType.includes('webm') ? 'webm' : 
+                                        mimeType.includes('mp4') ? 'm4a' : 'wav';
+                        const outputName = file.name.replace(/\.[^/.]+$/, '') + '_audio.' + extension;
                         
                         URL.revokeObjectURL(url);
+                        audioContext.close();
                         
                         resolve({
                             name: outputName,
@@ -672,25 +717,46 @@
                     };
                     
                     recorder.onerror = (error) => {
+                        clearInterval(progressInterval);
                         log(`Erro no MediaRecorder: ${error.error}`, 'error');
                         URL.revokeObjectURL(url);
+                        audioContext.close();
                         reject(error.error);
                     };
                     
-                    // Começar gravação e reprodução
+                    // Configurar reprodução com controle de progresso
+                    video.muted = true; // Evitar reprodução de áudio
+                    video.playbackRate = 4.0; // Acelerar 4x (limitado pelo navegador)
+                    
+                    // Monitorar progresso
+                    progressInterval = setInterval(() => {
+                        if (video.duration > 0) {
+                            const progress = (video.currentTime / video.duration) * 100;
+                            setProgress(progress * 0.8, `Extraindo áudio... ${progress.toFixed(1)}%`);
+                        }
+                    }, 500);
+                    
                     recorder.start();
                     video.play().then(() => {
-                        log('Reproduzindo vídeo para extrair áudio...', 'info');
+                        log(`Reproduzindo em ${video.playbackRate}x velocidade...`, 'info');
                     }).catch(err => {
-                        log(`Erro ao reproduzir vídeo: ${err.message}`, 'error');
+                        clearInterval(progressInterval);
+                        log(`Erro ao reproduzir: ${err.message}`, 'error');
                         reject(err);
                     });
                     
-                    // Parar gravação quando o vídeo terminar
                     video.onended = () => {
                         recorder.stop();
                         log('Extração de áudio concluída!', 'success');
                     };
+                    
+                    // Timeout de segurança (máximo 60 segundos)
+                    setTimeout(() => {
+                        if (recorder.state === 'recording') {
+                            recorder.stop();
+                            log('Extração interrompida por timeout', 'warning');
+                        }
+                    }, 60000);
                 };
                 
                 video.onerror = (error) => {
