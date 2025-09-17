@@ -359,54 +359,6 @@
             color: #6c757d;
         }
 
-        .tab-controls {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
-        }
-
-        .tab-btn {
-            background-color: #e9ecef;
-            border: 1px solid #dee2e6;
-            padding: 10px 15px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 8px 8px 0 0;
-            transition: all 0.2s;
-        }
-        .tab-btn.active {
-            background-color: #fff;
-            border-bottom-color: #fff;
-        }
-        .tab-content {
-            border: 1px solid #dee2e6;
-            padding: 20px;
-            border-radius: 0 8px 8px 8px;
-        }
-
-        .queue-item {
-            padding: 10px;
-            background: #f8f9fa;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin: 5px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .queue-status {
-            font-size: 0.8rem;
-            padding: 3px 8px;
-            border-radius: 12px;
-            color: white;
-        }
-
-        .status-waiting { background-color: #6c757d; }
-        .status-processing { background-color: var(--info); }
-        .status-completed { background-color: var(--success); }
-        .status-failed { background-color: var(--danger); }
-
         .advanced-options {
             background: #f8f9fa;
             padding: 20px;
@@ -441,15 +393,6 @@
             border-color: var(--primary);
         }
 
-        .compatibility-info {
-            font-size: 0.8rem;
-            color: #6c757d;
-            margin-top: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 4px;
-        }
-
         footer {
             margin-top: 25px;
             font-size: 0.8rem;
@@ -461,7 +404,7 @@
 <body>
     <div class="container">
         <h1>🎵 Extrator e Conversor de Áudio/Vídeo</h1>
-        <p class="lead">Extraia áudio de vídeos, remova trilhas sonoras, adicione áudio a imagens ou converta entre formatos.</p>
+        <p class="lead">Extraia áudio de vídeos, converta formatos e processe arquivos de mídia.</p>
 
         <div id="browserCompatibility"></div>
 
@@ -472,28 +415,18 @@
                     Arraste e solte arquivos aqui, ou clique para selecionar.
                     <br><small>Suporta múltiplos arquivos</small>
                 </div>
-                <input id="fileInput" type="file" accept="video/*,audio/*,image/*" multiple />
+                <input id="fileInput" type="file" accept="video/*,audio/*" multiple />
 
                 <div class="method-selector">
                     <h3>🔧 Modo de Conversão:</h3>
                     <div class="method-option selected" data-mode="extract-audio">
                         <h4>🗂️ Extrair Áudio</h4>
-                        <p>Extrai o áudio de arquivos de vídeo. Suporta MP4, WebM, AVI, MOV.</p>
+                        <p>Extrai o áudio de arquivos de vídeo usando APIs nativas do navegador.</p>
                     </div>
                     
-                    <div class="method-option" data-mode="remove-audio">
-                        <h4>🔇 Remover Áudio</h4>
-                        <p>Remove a trilha sonora de um vídeo, gerando um novo vídeo mudo.</p>
-                    </div>
-
-                    <div class="method-option" data-mode="add-audio">
-                        <h4>🖼️ Adicionar Áudio a Imagem</h4>
-                        <p>Cria um vídeo a partir de uma foto e um áudio.</p>
-                    </div>
-
                     <div class="method-option" data-mode="convert-format">
                         <h4>🔄 Converter Formato</h4>
-                        <p>Converte entre diferentes formatos de áudio e vídeo.</p>
+                        <p>Converte entre diferentes formatos de áudio.</p>
                     </div>
 
                     <div class="method-option" data-mode="edit-audio">
@@ -502,20 +435,20 @@
                     </div>
                 </div>
 
-                <div class="advanced-options" id="advancedOptions" style="display:none;">
+                <div class="advanced-options" id="advancedOptions">
                     <h4>⚙️ Opções Avançadas</h4>
                     
-                    <div class="form-group" id="outputFormatGroup" style="display:none;">
+                    <div class="form-group" id="outputFormatGroup">
                         <label>Formato de Saída:</label>
                         <div class="format-grid" id="formatGrid"></div>
                     </div>
 
-                    <div class="form-group" id="qualityGroup" style="display:none;">
+                    <div class="form-group" id="qualityGroup">
                         <label>Qualidade:</label>
                         <select class="form-control" id="qualitySelect">
-                            <option value="low">Baixa (128 kbps / 480p)</option>
-                            <option value="medium" selected>Média (256 kbps / 720p)</option>
-                            <option value="high">Alta (320 kbps / 1080p)</option>
+                            <option value="low">Baixa (128 kbps)</option>
+                            <option value="medium" selected>Média (256 kbps)</option>
+                            <option value="high">Alta (320 kbps)</option>
                         </select>
                     </div>
 
@@ -532,89 +465,12 @@
                     </div>
                 </div>
 
-                <div id="addAudioControls" style="display:none;">
-                    <h3>🎙️ Opções de Áudio:</h3>
-                    <div class="tab-controls">
-                        <button class="tab-btn active" data-tab="text-to-speech">Texto para Voz</button>
-                        <button class="tab-btn" data-tab="record-audio">Gravar Áudio</button>
-                        <button class="tab-btn" data-tab="upload-audio">Enviar Áudio</button>
-                    </div>
-                    <div class="tab-content" id="tts-content">
-                        <h4>📝 Digite o texto:</h4>
-                        <textarea id="ttsText" class="form-control" rows="3" placeholder="Digite o texto que deseja transformar em áudio..."></textarea>
-                        
-                        <div style="margin-top: 15px;">
-                            <label>👥 Tipo de Voz:</label>
-                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                <button type="button" class="btn btn-secondary" id="maleVoiceBtn">Masculina</button>
-                                <button type="button" class="btn btn-secondary" id="femaleVoiceBtn">Feminina</button>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 10px;">
-                            <label>🎭 Estilo da Voz:</label>
-                            <select id="voiceStyle" class="form-control" style="margin-bottom: 10px;">
-                                <option value="normal">Normal</option>
-                                <option value="confident">Confiante</option>
-                                <option value="gentle">Suave</option>
-                                <option value="serious">Sério</option>
-                                <option value="friendly">Amigável</option>
-                                <option value="calm">Calmo</option>
-                                <option value="energetic">Energético</option>
-                                <option value="mysterious">Misterioso</option>
-                            </select>
-                        </div>
-
-                        <div style="margin-top: 10px;">
-                            <label>🗣️ Voz Específica:</label>
-                            <select id="ttsVoice" class="form-control" style="margin-bottom: 10px;"></select>
-                        </div>
-
-                        <div style="display: flex; gap: 15px; margin-top: 10px;">
-                            <div style="flex: 1;">
-                                <label style="margin: 0; white-space: nowrap;">Tom: <span id="pitchValue">1.0</span></label>
-                                <input type="range" min="0.5" max="2" value="1" step="0.1" id="ttsPitch" style="width: 100%;">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="margin: 0; white-space: nowrap;">Velocidade: <span id="rateValue">1.0</span></label>
-                                <input type="range" min="0.5" max="2" value="1" step="0.1" id="ttsRate" style="width: 100%;">
-                            </div>
-                        </div>
-
-                        <button id="ttsGenerateBtn" class="btn btn-primary" style="margin-top: 20px;">🔊 Gerar Áudio</button>
-                        <button id="ttsPreviewBtn" class="btn btn-secondary" style="margin-top: 20px;">👂 Testar Voz</button>
-                    </div>
-                    <div class="tab-content" id="record-content" style="display:none;">
-                        <h4>🎤 Gravar seu áudio:</h4>
-                        <p style="font-size: 0.9em; color: #6c757d;">Permita o acesso ao seu microfone para começar a gravar.</p>
-                        <button id="recordStartBtn" class="btn btn-primary">🔴 Gravar</button>
-                        <button id="recordStopBtn" class="btn btn-danger" style="display:none;">⏹️ Parar</button>
-                        <button id="recordPauseBtn" class="btn btn-warning" style="display:none;">⏸️ Pausar</button>
-                    </div>
-                    <div class="tab-content" id="upload-content" style="display:none;">
-                        <h4>📂 Enviar um arquivo de áudio:</h4>
-                        <input id="audioInput" type="file" accept="audio/*" />
-                        <label for="audioInput" class="btn btn-secondary">Escolher Áudio</label>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <audio id="audioPreview" controls style="width: 100%; display: none;"></audio>
-                    </div>
-                </div>
+                <div class="file-list" id="fileList"></div>
 
                 <div class="controls">
                     <button id="processBtn" class="btn btn-primary">Processar Arquivos</button>
-                    <button id="processAllBtn" class="btn btn-success" style="display:none;">Processar Todos</button>
-                    <button id="clearBtn" class="btn btn-danger">🗑️ Limpar Seleção</button>
-                    <button id="clearDBBtn" class="btn btn-danger">🗑️ Limpar Armazenamento</button>
-                    <button id="pauseBtn" class="btn btn-warning" style="display:none;">⏸️ Pausar</button>
+                    <button id="clearBtn" class="btn btn-danger">🗑️ Limpar</button>
                 </div>
-
-                <div id="processingQueue" style="display:none;">
-                    <h4>📋 Fila de Processamento</h4>
-                    <div id="queueList"></div>
-                </div>
-
-                <div class="file-list" id="fileList"></div>
             </div>
 
             <div class="col">
@@ -627,7 +483,6 @@
                         <div class="progress-fill" id="progressFill" style="width:0%"></div>
                     </div>
                     <div id="progressText" style="font-size:0.85rem;color:#6c757d">Aguardando...</div>
-                    <div id="estimatedTime" style="font-size:0.8rem;color:#6c757d;margin-top:5px;"></div>
                 </div>
             </div>
         </div>
@@ -637,133 +492,58 @@
             <div id="convertedList"></div>
         </div>
 
-        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
-        <video id="video-source" style="display:none"></video>
-        <audio id="audio-source" style="display:none"></audio>
+        <!-- Elementos ocultos para processamento -->
+        <video id="videoElement" style="display:none" crossorigin="anonymous"></video>
+        <audio id="audioElement" style="display:none" crossorigin="anonymous"></audio>
+        <canvas id="canvas" style="display:none"></canvas>
 
         <footer>
             <strong>🔧 Modo:</strong> <span id="currentMode">Extrair Áudio</span><br>
-            <strong>⚡ Status do Navegador:</strong> <span id="browserStatus"></span>
+            <strong>⚡ Status:</strong> <span id="browserStatus">Carregando...</span>
         </footer>
     </div>
 
     <script>
         // Estado da aplicação
         let selectedFiles = [];
-        let convertedAudios = [];
-        let processingQueue = [];
+        let convertedFiles = [];
         let isProcessing = false;
-        let isPaused = false;
         let conversionMode = 'extract-audio';
-        let db;
-        let audioBlobToAttach = null;
-        let mediaRecorder;
-        let recordedChunks = [];
-        let voices = [];
-        let canvas = document.getElementById('canvas');
-        let ctx = canvas.getContext('2d');
-        let currentProcessIndex = 0;
-        let processStartTime = 0;
 
-        // Configurações avançadas de voz
-        let selectedVoiceGender = 'female';
-        let availableVoices = {
-            male: [],
-            female: []
-        };
-        
-        const voiceStyles = {
-            normal: { pitch: 1.0, rate: 1.0, volume: 1.0 },
-            confident: { pitch: 1.1, rate: 1.1, volume: 1.0 },
-            gentle: { pitch: 0.9, rate: 0.8, volume: 0.9 },
-            serious: { pitch: 0.8, rate: 0.9, volume: 1.0 },
-            friendly: { pitch: 1.2, rate: 1.1, volume: 1.0 },
-            calm: { pitch: 0.9, rate: 0.7, volume: 0.8 },
-            energetic: { pitch: 1.3, rate: 1.3, volume: 1.0 },
-            mysterious: { pitch: 0.7, rate: 0.8, volume: 0.9 }
-        };
-
-        const supportedFormats = {
-            audio: {
-                mp3: { mime: 'audio/mpeg', ext: 'mp3' },
-                wav: { mime: 'audio/wav', ext: 'wav' },
-                ogg: { mime: 'audio/ogg', ext: 'ogg' },
-                webm: { mime: 'audio/webm', ext: 'webm' }
-            },
-            video: {
-                mp4: { mime: 'video/mp4', ext: 'mp4' },
-                webm: { mime: 'video/webm', ext: 'webm' },
-                avi: { mime: 'video/avi', ext: 'avi' }
-            }
-        };
-
-        const qualitySettings = {
-            low: { audioBitrate: 128000, videoBitrate: 1000000 },
-            medium: { audioBitrate: 256000, videoBitrate: 2500000 },
-            high: { audioBitrate: 320000, videoBitrate: 5000000 }
-        };
-
-        // Constantes do banco de dados
-        const DB_NAME = 'audio-converter-db';
-        const STORE_NAME = 'converted-audios';
-
-        // Elementos do DOM
+        // Elementos DOM
         const elements = {
             fileInput: document.getElementById('fileInput'),
             fileList: document.getElementById('fileList'),
             processBtn: document.getElementById('processBtn'),
-            processAllBtn: document.getElementById('processAllBtn'),
-            pauseBtn: document.getElementById('pauseBtn'),
             clearBtn: document.getElementById('clearBtn'),
-            clearDBBtn: document.getElementById('clearDBBtn'),
             log: document.getElementById('log'),
             progressFill: document.getElementById('progressFill'),
             progressText: document.getElementById('progressText'),
-            estimatedTime: document.getElementById('estimatedTime'),
             convertedFiles: document.getElementById('convertedFiles'),
             convertedList: document.getElementById('convertedList'),
             currentMode: document.getElementById('currentMode'),
             browserStatus: document.getElementById('browserStatus'),
             dropArea: document.getElementById('dropArea'),
-            addAudioControls: document.getElementById('addAudioControls'),
             advancedOptions: document.getElementById('advancedOptions'),
-            processingQueue: document.getElementById('processingQueue'),
-            queueList: document.getElementById('queueList'),
-            browserCompatibility: document.getElementById('browserCompatibility'),
-            // Opções avançadas
-            outputFormatGroup: document.getElementById('outputFormatGroup'),
             formatGrid: document.getElementById('formatGrid'),
-            qualityGroup: document.getElementById('qualityGroup'),
             qualitySelect: document.getElementById('qualitySelect'),
-            editingGroup: document.getElementById('editingGroup'),
             startTime: document.getElementById('startTime'),
             duration: document.getElementById('duration'),
             volumeSlider: document.getElementById('volumeSlider'),
             volumeValue: document.getElementById('volumeValue'),
-            // TTS e gravação - elementos atualizados
-            ttsText: document.getElementById('ttsText'),
-            ttsVoice: document.getElementById('ttsVoice'),
-            ttsPitch: document.getElementById('ttsPitch'),
-            ttsRate: document.getElementById('ttsRate'),
-            ttsPitchValue: document.getElementById('pitchValue'),
-            ttsRateValue: document.getElementById('rateValue'),
-            voiceStyle: document.getElementById('voiceStyle'),
-            maleVoiceBtn: document.getElementById('maleVoiceBtn'),
-            femaleVoiceBtn: document.getElementById('femaleVoiceBtn'),
-            ttsGenerateBtn: document.getElementById('ttsGenerateBtn'),
-            ttsPreviewBtn: document.getElementById('ttsPreviewBtn'),
-            recordStartBtn: document.getElementById('recordStartBtn'),
-            recordStopBtn: document.getElementById('recordStopBtn'),
-            recordPauseBtn: document.getElementById('recordPauseBtn'),
-            audioInput: document.getElementById('audioInput'),
-            audioPreview: document.getElementById('audioPreview'),
-            tabBtns: document.querySelectorAll('.tab-btn'),
-            tabContents: document.querySelectorAll('.tab-content'),
-            videoSource: document.getElementById('video-source'),
-            audioSource: document.getElementById('audio-source')
+            videoElement: document.getElementById('videoElement'),
+            audioElement: document.getElementById('audioElement'),
+            canvas: document.getElementById('canvas'),
+            browserCompatibility: document.getElementById('browserCompatibility'),
+            editingGroup: document.getElementById('editingGroup')
         };
 
-        // Função de logging melhorada
+        const supportedFormats = {
+            audio: ['mp3', 'wav', 'ogg', 'webm', 'aac'],
+            video: ['mp4', 'webm', 'avi', 'mov']
+        };
+
+        // Função de logging
         function log(msg, type = 'info') {
             const time = new Date().toLocaleTimeString();
             const div = document.createElement('div');
@@ -771,496 +551,300 @@
             div.innerHTML = `<span style="opacity:0.7">[${time}]</span> ${msg}`;
             elements.log.appendChild(div);
             elements.log.scrollTop = elements.log.scrollHeight;
-
-            // Log no console também para debug
             console.log(`[${type.toUpperCase()}] ${msg}`);
         }
 
-        // Função de progresso melhorada
-        function setProgress(percent, text, estimatedSeconds = null) {
+        // Função de progresso
+        function setProgress(percent, text) {
             elements.progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
             elements.progressText.textContent = text;
-            
-            if (estimatedSeconds && estimatedSeconds > 0) {
-                const minutes = Math.floor(estimatedSeconds / 60);
-                const seconds = Math.floor(estimatedSeconds % 60);
-                elements.estimatedTime.textContent = `Tempo estimado: ${minutes}m ${seconds}s`;
-            } else {
-                elements.estimatedTime.textContent = '';
-            }
         }
 
-        // Verificação de compatibilidade do navegador
+        // Verificação de compatibilidade
         function checkBrowserCompatibility() {
             const features = {
                 mediaRecorder: !!window.MediaRecorder,
                 webAudio: !!(window.AudioContext || window.webkitAudioContext),
-                getUserMedia: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
-                speechSynthesis: !!window.speechSynthesis,
-                indexedDB: !!window.indexedDB,
                 canvas: !!document.createElement('canvas').getContext,
-                sharedArrayBuffer: typeof SharedArrayBuffer !== 'undefined'
+                videoElement: !!document.createElement('video')
             };
 
             let compatibilityHTML = '';
-            let warningCount = 0;
+            const supportedCount = Object.values(features).filter(Boolean).length;
+            const totalCount = Object.keys(features).length;
 
-            if (!features.mediaRecorder || !features.webAudio) {
-                compatibilityHTML += '<div class="alert alert-warning">⚠️ <strong>Limitação:</strong> Algumas funcionalidades podem não funcionar corretamente neste navegador.</div>';
-                warningCount++;
-            }
-
-            if (features.sharedArrayBuffer) {
-                compatibilityHTML += '<div class="alert alert-success">✅ <strong>Excelente!</strong> Seu navegador suporta todas as funcionalidades avançadas.</div>';
-            }
-
-            if (warningCount === 0 && !features.sharedArrayBuffer) {
-                compatibilityHTML += '<div class="alert alert-info">ℹ️ <strong>Bom:</strong> A maioria das funcionalidades está disponível.</div>';
+            if (supportedCount === totalCount) {
+                compatibilityHTML = '<div class="alert alert-success">✅ <strong>Perfeito!</strong> Seu navegador suporta todas as funcionalidades.</div>';
+            } else if (supportedCount >= totalCount - 1) {
+                compatibilityHTML = '<div class="alert alert-info">ℹ️ <strong>Bom!</strong> A maioria das funcionalidades está disponível.</div>';
+            } else {
+                compatibilityHTML = '<div class="alert alert-warning">⚠️ <strong>Limitado:</strong> Algumas funcionalidades podem não funcionar.</div>';
             }
 
             elements.browserCompatibility.innerHTML = compatibilityHTML;
-
-            // Status do navegador no rodapé
-            const supportedFeatures = Object.values(features).filter(Boolean).length;
-            const totalFeatures = Object.keys(features).length;
-            elements.browserStatus.textContent = `${supportedFeatures}/${totalFeatures} funcionalidades suportadas`;
+            elements.browserStatus.textContent = `${supportedCount}/${totalCount} funcionalidades suportadas`;
 
             return features;
         }
 
-        // Validação de arquivo melhorada
+        // Validação de arquivo
         function validateFile(file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            const validExtensions = {
-                video: ['mp4', 'webm', 'avi', 'mov', 'mkv', 'flv'],
-                audio: ['mp3', 'wav', 'ogg', 'aac', 'webm', 'm4a', 'flac'],
-                image: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp']
-            };
-
-            const fileType = file.type.startsWith('video/') ? 'video' : 
-                           file.type.startsWith('audio/') ? 'audio' : 
-                           file.type.startsWith('image/') ? 'image' : 'unknown';
-
-            const isValidExtension = validExtensions[fileType]?.includes(ext);
-            const isValidMimeType = file.type && file.type !== 'application/octet-stream';
-
+            const isVideo = file.type.startsWith('video/');
+            const isAudio = file.type.startsWith('audio/');
+            
             return {
-                valid: isValidExtension && isValidMimeType,
-                type: fileType,
+                valid: isVideo || isAudio,
+                type: isVideo ? 'video' : (isAudio ? 'audio' : 'unknown'),
                 extension: ext,
                 size: file.size,
-                sizeFormatted: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-                duration: null,
-                dimensions: null
+                sizeFormatted: (file.size / 1024 / 1024).toFixed(2) + ' MB'
             };
         }
 
-        // Obter informações detalhadas do arquivo
-        async function getFileInfo(file) {
-            const validation = validateFile(file);
-            
-            if (file.type.startsWith('video/') || file.type.startsWith('audio/')) {
-                try {
-                    const media = file.type.startsWith('video/') ? elements.videoSource : elements.audioSource;
-                    media.src = URL.createObjectURL(file);
+        // IMPLEMENTAÇÃO CORRIGIDA - Extração de áudio usando APIs nativas
+        async function extractAudioFromVideo(file) {
+            return new Promise((resolve, reject) => {
+                log(`Extraindo áudio de ${file.name}...`, 'info');
+                
+                const video = elements.videoElement;
+                const canvas = elements.canvas;
+                const ctx = canvas.getContext('2d');
+                
+                // Criar URL do objeto
+                const url = URL.createObjectURL(file);
+                video.src = url;
+                
+                video.onloadedmetadata = () => {
+                    log(`Duração do vídeo: ${video.duration.toFixed(1)}s`, 'info');
                     
-                    await new Promise((resolve, reject) => {
-                        media.onloadedmetadata = resolve;
-                        media.onerror = reject;
-                        setTimeout(reject, 5000); // timeout após 5s
-                    });
-
-                    validation.duration = media.duration;
-                    if (file.type.startsWith('video/')) {
-                        validation.dimensions = `${media.videoWidth}x${media.videoHeight}`;
+                    // Configurar canvas
+                    canvas.width = 1;
+                    canvas.height = 1;
+                    
+                    // Criar MediaStream a partir do vídeo
+                    const stream = canvas.captureStream(30);
+                    
+                    // Criar contexto de áudio
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContext.createMediaElementSource(video);
+                    const destination = audioContext.createMediaStreamDestination();
+                    source.connect(destination);
+                    
+                    // Configurar MediaRecorder para capturar apenas áudio
+                    const options = {
+                        mimeType: 'audio/webm;codecs=opus'
+                    };
+                    
+                    // Fallback para outros formatos se webm não for suportado
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        if (MediaRecorder.isTypeSupported('audio/webm')) {
+                            options.mimeType = 'audio/webm';
+                        } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                            options.mimeType = 'audio/mp4';
+                        } else {
+                            options.mimeType = 'audio/wav';
+                        }
                     }
                     
-                    URL.revokeObjectURL(media.src);
-                    media.src = '';
-                } catch (error) {
-                    log(`Erro ao obter informações de ${file.name}: ${error.message}`, 'warning');
-                }
-            }
-
-            if (file.type.startsWith('image/')) {
-                try {
-                    const img = new Image();
-                    img.src = URL.createObjectURL(file);
+                    const recorder = new MediaRecorder(destination.stream, options);
+                    const chunks = [];
                     
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = reject;
-                        setTimeout(reject, 3000);
+                    recorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            chunks.push(event.data);
+                        }
+                    };
+                    
+                    recorder.onstop = () => {
+                        const audioBlob = new Blob(chunks, { type: options.mimeType });
+                        const outputName = file.name.replace(/\.[^/.]+$/, '') + '_audio.webm';
+                        
+                        URL.revokeObjectURL(url);
+                        
+                        resolve({
+                            name: outputName,
+                            blob: audioBlob,
+                            type: audioBlob.type,
+                            size: audioBlob.size,
+                            originalFile: file.name
+                        });
+                    };
+                    
+                    recorder.onerror = (error) => {
+                        log(`Erro no MediaRecorder: ${error.error}`, 'error');
+                        URL.revokeObjectURL(url);
+                        reject(error.error);
+                    };
+                    
+                    // Começar gravação e reprodução
+                    recorder.start();
+                    video.play().then(() => {
+                        log('Reproduzindo vídeo para extrair áudio...', 'info');
+                    }).catch(err => {
+                        log(`Erro ao reproduzir vídeo: ${err.message}`, 'error');
+                        reject(err);
                     });
-
-                    validation.dimensions = `${img.width}x${img.height}`;
-                    URL.revokeObjectURL(img.src);
-                } catch (error) {
-                    log(`Erro ao obter dimensões de ${file.name}: ${error.message}`, 'warning');
-                }
-            }
-
-            return validation;
-        }
-
-        // Funções do IndexedDB melhoradas
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 2);
-                
-                request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
                     
-                    // Criar object store se não existir
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                        store.createIndex('name', 'name', { unique: false });
-                        store.createIndex('type', 'type', { unique: false });
-                        store.createIndex('timestamp', 'timestamp', { unique: false });
-                    }
+                    // Parar gravação quando o vídeo terminar
+                    video.onended = () => {
+                        recorder.stop();
+                        log('Extração de áudio concluída!', 'success');
+                    };
                 };
                 
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    resolve();
-                };
-                
-                request.onerror = (event) => {
-                    log(`Erro ao abrir banco de dados: ${event.target.error}`, 'error');
-                    reject(event.target.error);
+                video.onerror = (error) => {
+                    log(`Erro ao carregar vídeo: ${error.message}`, 'error');
+                    URL.revokeObjectURL(url);
+                    reject(error);
                 };
             });
         }
 
-        async function saveAudioToDB(audioData) {
+        // Conversão de formato de áudio
+        async function convertAudioFormat(file, targetFormat) {
             return new Promise((resolve, reject) => {
-                try {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    const id = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                    
-                    const dataToSave = {
-                        id: id,
-                        name: audioData.name,
-                        size: audioData.blob.size,
-                        blob: audioData.blob,
-                        type: audioData.type,
-                        timestamp: new Date().toISOString(),
-                        originalFile: audioData.originalFile || null,
-                        processingMode: conversionMode
-                    };
-                    
-                    const request = store.put(dataToSave);
-                    request.onsuccess = () => {
-                        log(`Arquivo salvo no banco: ${audioData.name}`, 'success');
-                        resolve(dataToSave);
-                    };
-                    request.onerror = () => reject(request.error);
-                } catch (error) {
-                    log(`Erro ao salvar no banco: ${error.message}`, 'error');
-                    reject(error);
-                }
-            });
-        }
-
-        async function getAudiosFromDB() {
-            return new Promise((resolve, reject) => {
-                try {
-                    const tx = db.transaction(STORE_NAME, 'readonly');
-                    const store = tx.objectStore(STORE_NAME);
-                    const request = store.getAll();
-                    
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                } catch (error) {
-                    log(`Erro ao ler banco: ${error.message}`, 'error');
-                    resolve([]);
-                }
-            });
-        }
-
-        async function deleteAudioFromDB(id) {
-            return new Promise((resolve, reject) => {
-                try {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    const request = store.delete(id);
-                    
-                    request.onsuccess = () => {
-                        log(`Arquivo removido do banco: ${id}`, 'info');
-                        resolve();
-                    };
-                    request.onerror = () => reject(request.error);
-                } catch (error) {
-                    log(`Erro ao deletar do banco: ${error.message}`, 'error');
-                    reject(error);
-                }
-            });
-        }
-
-        async function clearDB() {
-            return new Promise((resolve, reject) => {
-                try {
-                    const tx = db.transaction(STORE_NAME, 'readwrite');
-                    const store = tx.objectStore(STORE_NAME);
-                    const request = store.clear();
-                    
-                    request.onsuccess = () => {
-                        log('Banco de dados limpo completamente', 'success');
-                        resolve();
-                    };
-                    request.onerror = () => reject(request.error);
-                } catch (error) {
-                    log(`Erro ao limpar banco: ${error.message}`, 'error');
-                    reject(error);
-                }
-            });
-        }
-
-        // Sistema de fila de processamento
-        function addToQueue(file, mode, options = {}) {
-            const queueItem = {
-                id: `queue-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                file: file,
-                mode: mode,
-                options: options,
-                status: 'waiting',
-                progress: 0,
-                result: null,
-                error: null,
-                addedAt: new Date()
-            };
-            
-            processingQueue.push(queueItem);
-            renderQueue();
-            return queueItem;
-        }
-
-        function removeFromQueue(id) {
-            const index = processingQueue.findIndex(item => item.id === id);
-            if (index !== -1) {
-                processingQueue.splice(index, 1);
-                renderQueue();
-            }
-        }
-
-        function renderQueue() {
-            if (processingQueue.length === 0) {
-                elements.processingQueue.style.display = 'none';
-                return;
-            }
-
-            elements.processingQueue.style.display = 'block';
-            elements.queueList.innerHTML = processingQueue.map((item, index) => `
-                <div class="queue-item" data-id="${item.id}">
-                    <div>
-                        <strong>${item.file.name}</strong>
-                        <br><small>${item.mode} - ${item.progress}%</small>
-                    </div>
-                    <div>
-                        <span class="queue-status status-${item.status}">${getStatusText(item.status)}</span>
-                        <button class="btn btn-danger btn-small" onclick="removeFromQueue('${item.id}')">❌</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function getStatusText(status) {
-            const statusMap = {
-                'waiting': 'Aguardando',
-                'processing': 'Processando',
-                'completed': 'Concluído',
-                'failed': 'Erro'
-            };
-            return statusMap[status] || status;
-        }
-
-        // Processamento de arquivos melhorado
-        async function processQueue() {
-            if (isProcessing || processingQueue.length === 0) return;
-
-            isProcessing = true;
-            currentProcessIndex = 0;
-            processStartTime = Date.now();
-
-            elements.processBtn.disabled = true;
-            elements.processAllBtn.disabled = true;
-            elements.pauseBtn.style.display = 'inline-block';
-
-            log(`Iniciando processamento de ${processingQueue.length} arquivo(s)`, 'info');
-
-            for (let i = 0; i < processingQueue.length && !isPaused; i++) {
-                currentProcessIndex = i;
-                const item = processingQueue[i];
+                log(`Convertendo ${file.name} para ${targetFormat}...`, 'info');
                 
-                if (item.status === 'completed') continue;
-
-                try {
-                    item.status = 'processing';
-                    renderQueue();
-
-                    const overallProgress = (i / processingQueue.length) * 100;
-                    setProgress(overallProgress, `Processando ${item.file.name}...`);
-
-                    let result;
-                    switch (item.mode) {
-                        case 'extract-audio':
-                            result = await extractAudioFromFile(item.file, item.options);
+                const audio = elements.audioElement;
+                const url = URL.createObjectURL(file);
+                audio.src = url;
+                
+                audio.onloadedmetadata = () => {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const source = audioContext.createMediaElementSource(audio);
+                    const destination = audioContext.createMediaStreamDestination();
+                    source.connect(destination);
+                    
+                    let mimeType;
+                    switch (targetFormat) {
+                        case 'webm':
+                            mimeType = 'audio/webm;codecs=opus';
                             break;
-                        case 'remove-audio':
-                            result = await removeAudioFromVideo(item.file, item.options);
+                        case 'mp4':
+                            mimeType = 'audio/mp4';
                             break;
-                        case 'add-audio':
-                            result = await addAudioToImage(item.file, audioBlobToAttach, item.options);
-                            break;
-                        case 'convert-format':
-                            result = await convertFormat(item.file, item.options);
-                            break;
-                        case 'edit-audio':
-                            result = await editAudio(item.file, item.options);
+                        case 'ogg':
+                            mimeType = 'audio/ogg;codecs=opus';
                             break;
                         default:
-                            throw new Error(`Modo desconhecido: ${item.mode}`);
+                            mimeType = 'audio/webm';
                     }
-
-                    item.status = 'completed';
-                    item.result = result;
-                    item.progress = 100;
                     
-                    if (result) {
-                        convertedAudios.push({
-                            ...result,
-                            url: URL.createObjectURL(result.blob)
-                        });
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = 'audio/webm';
                     }
+                    
+                    const recorder = new MediaRecorder(destination.stream, { mimeType });
+                    const chunks = [];
+                    
+                    recorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            chunks.push(event.data);
+                        }
+                    };
+                    
+                    recorder.onstop = () => {
+                        const convertedBlob = new Blob(chunks, { type: mimeType });
+                        const outputName = file.name.replace(/\.[^/.]+$/, '') + '_convertido.' + targetFormat;
+                        
+                        URL.revokeObjectURL(url);
+                        
+                        resolve({
+                            name: outputName,
+                            blob: convertedBlob,
+                            type: convertedBlob.type,
+                            size: convertedBlob.size,
+                            originalFile: file.name
+                        });
+                    };
+                    
+                    recorder.onerror = (error) => {
+                        URL.revokeObjectURL(url);
+                        reject(error.error);
+                    };
+                    
+                    recorder.start();
+                    audio.play();
+                    
+                    audio.onended = () => {
+                        recorder.stop();
+                        log('Conversão de formato concluída!', 'success');
+                    };
+                };
+                
+                audio.onerror = (error) => {
+                    URL.revokeObjectURL(url);
+                    reject(error);
+                };
+            });
+        }
 
-                } catch (error) {
-                    log(`Erro ao processar ${item.file.name}: ${error.message}`, 'error');
-                    item.status = 'failed';
-                    item.error = error.message;
-                }
-
-                renderQueue();
-            }
-
-            if (!isPaused) {
-                setProgress(100, 'Processamento concluído!');
-                log('Todos os arquivos foram processados!', 'success');
-            }
-
-            isProcessing = false;
-            isPaused = false;
-            elements.processBtn.disabled = false;
-            elements.processAllBtn.disabled = false;
-            elements.pauseBtn.style.display = 'none';
+        // Edição de áudio básica
+        async function editAudio(file, options = {}) {
+            const startTime = parseFloat(options.startTime) || 0;
+            const duration = parseFloat(options.duration) || 0;
+            const volume = parseFloat(options.volume) || 100;
             
-            renderConvertedFiles();
-        }
-
-        // FUNÇÕES QUE PRECISAM DE UMA BIBLIOTECA COMO ffmpeg.wasm
-        async function extractAudioFromFile(file, options) {
-            log(`Extraindo áudio de ${file.name}...`, 'info');
-            // Essa função precisa de uma biblioteca como `ffmpeg.wasm` para funcionar.
-            // A lógica nativa do navegador não permite extrair áudio de todos os formatos de vídeo.
-            throw new Error("Funcionalidade de extração de áudio não implementada sem uma biblioteca de processamento de mídia.");
-        }
-
-        async function removeAudioFromVideo(file, options) {
-            log(`Removendo áudio de ${file.name}...`, 'info');
-            // Essa função precisa de uma biblioteca como `ffmpeg.wasm`.
-            throw new Error("Funcionalidade de remoção de áudio não implementada sem uma biblioteca de processamento de mídia.");
-        }
-
-        async function addAudioToImage(imageFile, audioBlob, options) {
-            log(`Adicionando áudio a ${imageFile.name}...`, 'info');
-            // Esta função pode ser feita com WebM, mas é complexa.
-            // Para simplicidade e compatibilidade, seria melhor usar uma biblioteca.
-            throw new Error("Funcionalidade de adicionar áudio a imagem não implementada sem uma biblioteca de processamento de mídia.");
-        }
-
-        async function convertVideoFormat(file, outputFormat, quality) {
-            log(`Convertendo vídeo ${file.name} para ${outputFormat}...`, 'info');
-            // Conversão de vídeo é uma tarefa complexa que requer uma biblioteca.
-            throw new Error("Conversão de formato de vídeo não implementada sem uma biblioteca de processamento de mídia.");
-        }
-
-        // Função de conversão de formato de áudio (usando Web Audio API)
-        async function convertFormat(file, options = {}) {
-            const outputFormat = options.outputFormat || 'wav';
-            const quality = options.quality || 'medium';
+            log(`Editando ${file.name}...`, 'info');
             
-            log(`Convertendo ${file.name} para ${outputFormat}...`, 'info');
-
             try {
-                if (file.type.startsWith('audio/')) {
-                    return await convertAudioFormat(file, outputFormat, quality);
-                } else if (file.type.startsWith('video/')) {
-                    return await convertVideoFormat(file, outputFormat, quality);
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const audioBuffer = await audioContext.decodeAudioData(await file.arrayBuffer());
+                
+                const sampleRate = audioBuffer.sampleRate;
+                const numChannels = audioBuffer.numberOfChannels;
+                
+                const startSample = Math.floor(startTime * sampleRate);
+                const endSample = duration > 0 ? 
+                    Math.floor((startTime + duration) * sampleRate) : 
+                    audioBuffer.length;
+                
+                const outputLength = endSample - startSample;
+                const outputBuffer = audioContext.createBuffer(numChannels, outputLength, sampleRate);
+                
+                // Processar cada canal
+                for (let channel = 0; channel < numChannels; channel++) {
+                    const inputData = audioBuffer.getChannelData(channel);
+                    const outputData = outputBuffer.getChannelData(channel);
+                    
+                    for (let i = 0; i < outputLength; i++) {
+                        let sample = inputData[startSample + i] || 0;
+                        sample *= (volume / 100);
+                        
+                        // Aplicar fade in/out
+                        const fadeDuration = Math.min(0.1 * sampleRate, outputLength / 4);
+                        if (i < fadeDuration) {
+                            sample *= (i / fadeDuration);
+                        }
+                        if (i > outputLength - fadeDuration) {
+                            sample *= ((outputLength - i) / fadeDuration);
+                        }
+                        
+                        outputData[i] = Math.max(-1, Math.min(1, sample));
+                    }
                 }
+                
+                // Converter para WAV
+                const wavData = audioBufferToWav(outputBuffer);
+                const outputBlob = new Blob([wavData], { type: 'audio/wav' });
+                const outputName = file.name.replace(/\.[^/.]+$/, '') + '_editado.wav';
+                
+                return {
+                    name: outputName,
+                    blob: outputBlob,
+                    type: 'audio/wav',
+                    size: outputBlob.size,
+                    originalFile: file.name
+                };
+                
             } catch (error) {
-                log(`Erro na conversão: ${error.message}`, 'error');
+                log(`Erro na edição: ${error.message}`, 'error');
                 throw error;
             }
         }
 
-        async function convertAudioFormat(file, outputFormat, quality) {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const audioBuffer = await audioContext.decodeAudioData(await file.arrayBuffer());
-            
-            let outputBlob;
-            const qualitySetting = qualitySettings[quality];
-            
-            switch (outputFormat) {
-                case 'wav':
-                    const wavData = audioBufferToWav(audioBuffer);
-                    outputBlob = new Blob([wavData], { type: 'audio/wav' });
-                    break;
-                    
-                case 'webm':
-                case 'mp3':
-                case 'ogg':
-                    log(`Conversão para ${outputFormat} usando MediaRecorder (se suportado).`, 'info');
-                    const stream = audioContext.createMediaStreamDestination();
-                    const source = audioContext.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.connect(stream);
-                    source.start();
-
-                    const recorder = new MediaRecorder(stream.stream, {
-                        mimeType: supportedFormats.audio[outputFormat].mime,
-                        audioBitsPerSecond: qualitySetting.audioBitrate
-                    });
-                    
-                    const chunks = [];
-                    recorder.ondataavailable = e => chunks.push(e.data);
-                    
-                    outputBlob = await new Promise((resolve, reject) => {
-                        recorder.onstop = () => {
-                            resolve(new Blob(chunks, { type: supportedFormats.audio[outputFormat].mime }));
-                        };
-                        recorder.onerror = e => reject(e.error);
-                        recorder.start();
-                        source.onended = () => {
-                            recorder.stop();
-                        };
-                    });
-                    break;
-                    
-                default:
-                    throw new Error(`Formato ${outputFormat} não suportado para conversão nativa.`);
-            }
-
-            const outputName = file.name.replace(/\.[^/.]+$/, '') + '.' + outputFormat;
-            
-            return await saveAudioToDB({
-                name: outputName,
-                blob: outputBlob,
-                type: outputBlob.type,
-                originalFile: file.name
-            });
-        }
-
-        // Função para converter AudioBuffer para WAV (formato nativo)
+        // Função para converter AudioBuffer para WAV
         function audioBufferToWav(buffer) {
             const numChannels = buffer.numberOfChannels;
             const sampleRate = buffer.sampleRate;
@@ -1298,7 +882,7 @@
                 }
             }
             
-            for(let i=0; i < samples.length; i++) {
+            for(let i = 0; i < samples.length; i++) {
                 view.setInt16(offset, samples[i], true);
                 offset += 2;
             }
@@ -1312,75 +896,103 @@
             }
         }
 
-        // Função de edição de áudio
-        async function editAudio(file, options = {}) {
-            const startTime = parseFloat(options.startTime) || 0;
-            const duration = parseFloat(options.duration) || 0;
-            const volume = parseFloat(options.volume) || 100;
-            
-            log(`Editando ${file.name}...`, 'info');
+        // Processamento principal
+        async function processFiles() {
+            if (selectedFiles.length === 0) {
+                log('Nenhum arquivo selecionado.', 'warning');
+                return;
+            }
 
+            if (isProcessing) {
+                log('Processamento já em andamento.', 'warning');
+                return;
+            }
+
+            isProcessing = true;
+            elements.processBtn.disabled = true;
+            
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const audioBuffer = await audioContext.decodeAudioData(await file.arrayBuffer());
+                log(`Iniciando processamento de ${selectedFiles.length} arquivo(s)...`, 'info');
                 
-                const sampleRate = audioBuffer.sampleRate;
-                const numChannels = audioBuffer.numberOfChannels;
-                
-                const startSample = Math.floor(startTime * sampleRate);
-                const endSample = duration > 0 ? 
-                    Math.floor((startTime + duration) * sampleRate) : 
-                    audioBuffer.length;
-                
-                const outputLength = endSample - startSample;
-                const outputBuffer = audioContext.createBuffer(numChannels, outputLength, sampleRate);
-                
-                // Copiar e aplicar efeitos
-                for (let channel = 0; channel < numChannels; channel++) {
-                    const inputData = audioBuffer.getChannelData(channel);
-                    const outputData = outputBuffer.getChannelData(channel);
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const progress = (i / selectedFiles.length) * 100;
+                    setProgress(progress, `Processando ${file.name}...`);
                     
-                    for (let i = 0; i < outputLength; i++) {
-                        let sample = inputData[startSample + i] || 0;
+                    try {
+                        let result;
+                        const selectedFormat = document.querySelector('.format-option.selected')?.dataset.format;
                         
-                        // Aplicar ajuste de volume
-                        sample *= (volume / 100);
-                        
-                        // Aplicar fade in/out básico
-                        const fadeDuration = 0.1 * sampleRate;
-                        if (i < fadeDuration) {
-                            sample *= (i / fadeDuration);
+                        switch (conversionMode) {
+                            case 'extract-audio':
+                                if (file.type.startsWith('video/')) {
+                                    result = await extractAudioFromVideo(file);
+                                } else {
+                                    log(`${file.name} não é um arquivo de vídeo. Pulando...`, 'warning');
+                                    continue;
+                                }
+                                break;
+                                
+                            case 'convert-format':
+                                if (file.type.startsWith('audio/')) {
+                                    result = await convertAudioFormat(file, selectedFormat || 'webm');
+                                } else {
+                                    log(`${file.name} não é um arquivo de áudio. Pulando...`, 'warning');
+                                    continue;
+                                }
+                                break;
+                                
+                            case 'edit-audio':
+                                if (file.type.startsWith('audio/')) {
+                                    const options = {
+                                        startTime: elements.startTime.value,
+                                        duration: elements.duration.value,
+                                        volume: elements.volumeSlider.value
+                                    };
+                                    result = await editAudio(file, options);
+                                } else {
+                                    log(`${file.name} não é um arquivo de áudio. Pulando...`, 'warning');
+                                    continue;
+                                }
+                                break;
+                                
+                            default:
+                                log(`Modo ${conversionMode} não implementado.`, 'error');
+                                continue;
                         }
-                        if (i > outputLength - fadeDuration) {
-                            sample *= ((outputLength - i) / fadeDuration);
+                        
+                        if (result) {
+                            convertedFiles.push({
+                                ...result,
+                                id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                url: URL.createObjectURL(result.blob)
+                            });
+                            log(`✅ ${result.name} processado com sucesso!`, 'success');
                         }
                         
-                        outputData[i] = Math.max(-1, Math.min(1, sample));
+                    } catch (error) {
+                        log(`❌ Erro ao processar ${file.name}: ${error.message}`, 'error');
                     }
                 }
                 
-                const wavData = audioBufferToWav(outputBuffer);
-                const outputBlob = new Blob([wavData], { type: 'audio/wav' });
-                const outputName = file.name.replace(/\.[^/.]+$/, '') + '_editado.wav';
-                
-                return await saveAudioToDB({
-                    name: outputName,
-                    blob: outputBlob,
-                    type: 'audio/wav',
-                    originalFile: file.name
-                });
+                setProgress(100, 'Processamento concluído!');
+                log('Todos os arquivos foram processados!', 'success');
                 
             } catch (error) {
-                log(`Erro na edição: ${error.message}`, 'error');
-                throw error;
+                log(`Erro geral no processamento: ${error.message}`, 'error');
+                setProgress(0, 'Erro no processamento');
+            } finally {
+                isProcessing = false;
+                elements.processBtn.disabled = false;
+                renderConvertedFiles();
             }
         }
 
         // Funções de renderização
         function renderFileList() {
             elements.fileList.innerHTML = '';
-            selectedFiles.forEach(async (file, index) => {
-                const info = await getFileInfo(file);
+            selectedFiles.forEach((file, index) => {
+                const info = validateFile(file);
                 const div = document.createElement('div');
                 div.className = 'file-item';
                 div.innerHTML = `
@@ -1388,8 +1000,6 @@
                         <strong>${file.name}</strong>
                         <small>Tipo: ${info.type}</small>
                         <small>Tamanho: ${info.sizeFormatted}</small>
-                        ${info.duration ? `<small>Duração: ${info.duration.toFixed(1)}s</small>` : ''}
-                        ${info.dimensions ? `<small>Dimensões: ${info.dimensions}</small>` : ''}
                     </div>
                     <div class="file-actions">
                         <button class="btn btn-danger btn-small" onclick="removeFile(${index})">Remover</button>
@@ -1397,29 +1007,47 @@
                 `;
                 elements.fileList.appendChild(div);
             });
-
-            updateProcessButtons();
         }
 
         function renderConvertedFiles() {
-            if (convertedAudios.length === 0) {
+            if (convertedFiles.length === 0) {
                 elements.convertedFiles.style.display = 'none';
                 return;
             }
+            
             elements.convertedFiles.style.display = 'block';
-            elements.convertedList.innerHTML = convertedAudios.map(item => `
+            elements.convertedList.innerHTML = convertedFiles.map(item => `
                 <div class="converted-item" data-id="${item.id}">
                     <div class="converted-header">
                         <span class="converted-name">✅ ${item.name}</span>
                         <span class="converted-size">${(item.size / 1024 / 1024).toFixed(2)} MB</span>
                     </div>
                     <div class="converted-controls">
-                        <audio controls src="${item.url}" style="width:100%;"></audio>
-                        <button class="btn btn-primary btn-small" onclick="downloadFile('${item.id}')">Download</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteConvertedFile('${item.id}')">Excluir</button>
+                        <audio controls src="${item.url}" style="width:100%; margin-bottom:10px;"></audio>
+                        <button class="btn btn-primary btn-small" onclick="downloadFile('${item.id}')">📥 Download</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteConvertedFile('${item.id}')">🗑️ Excluir</button>
                     </div>
                 </div>
             `).join('');
+        }
+
+        function renderFormatOptions(type = 'audio') {
+            const formats = supportedFormats[type];
+            elements.formatGrid.innerHTML = formats.map(format => `
+                <div class="format-option" data-format="${format}">.${format}</div>
+            `).join('');
+            
+            // Selecionar primeiro formato por padrão
+            if (formats.length > 0) {
+                elements.formatGrid.querySelector('.format-option').classList.add('selected');
+            }
+        }
+
+        function updateUI() {
+            elements.editingGroup.style.display = conversionMode === 'edit-audio' ? 'block' : 'none';
+            
+            const formatType = conversionMode === 'extract-audio' || conversionMode === 'convert-format' || conversionMode === 'edit-audio' ? 'audio' : 'video';
+            renderFormatOptions(formatType);
         }
 
         // Funções de ação
@@ -1427,9 +1055,9 @@
             selectedFiles.splice(index, 1);
             renderFileList();
         }
-        
+
         function downloadFile(id) {
-            const item = convertedAudios.find(i => i.id === id);
+            const item = convertedFiles.find(i => i.id === id);
             if (item) {
                 const link = document.createElement('a');
                 link.href = item.url;
@@ -1441,74 +1069,30 @@
             }
         }
 
-        async function deleteConvertedFile(id) {
-            await deleteAudioFromDB(id);
-            convertedAudios = convertedAudios.filter(item => item.id !== id);
+        function deleteConvertedFile(id) {
+            convertedFiles = convertedFiles.filter(item => {
+                if (item.id === id) {
+                    URL.revokeObjectURL(item.url);
+                    return false;
+                }
+                return true;
+            });
             renderConvertedFiles();
-            log(`Arquivo excluído permanentemente.`, 'info');
+            log(`Arquivo excluído.`, 'info');
         }
 
-        function updateProcessButtons() {
-            const hasFiles = selectedFiles.length > 0;
-            const hasQueue = processingQueue.length > 0;
-            elements.processBtn.style.display = hasFiles ? 'inline-block' : 'none';
-            elements.processAllBtn.style.display = hasQueue ? 'inline-block' : 'none';
-        }
-
-        function updateAdvancedOptionsUI() {
-            elements.advancedOptions.style.display = 'block';
-            elements.addAudioControls.style.display = 'none';
-
-            elements.outputFormatGroup.style.display = 'none';
-            elements.qualityGroup.style.display = 'none';
-            elements.editingGroup.style.display = 'none';
-
-            switch (conversionMode) {
-                case 'extract-audio':
-                    elements.outputFormatGroup.style.display = 'block';
-                    elements.qualityGroup.style.display = 'block';
-                    renderFormatOptions('audio');
-                    break;
-                case 'remove-audio':
-                    elements.qualityGroup.style.display = 'block';
-                    elements.advancedOptions.style.display = 'none';
-                    break;
-                case 'add-audio':
-                    elements.addAudioControls.style.display = 'block';
-                    elements.qualityGroup.style.display = 'block';
-                    renderFormatOptions('video');
-                    break;
-                case 'convert-format':
-                    elements.outputFormatGroup.style.display = 'block';
-                    elements.qualityGroup.style.display = 'block';
-                    renderFormatOptions('audio'); // Pode ser ajustado para detectar o tipo de arquivo
-                    break;
-                case 'edit-audio':
-                    elements.editingGroup.style.display = 'block';
-                    elements.advancedOptions.style.display = 'block';
-                    break;
-            }
-        }
-
-        function renderFormatOptions(type) {
-            elements.formatGrid.innerHTML = Object.keys(supportedFormats[type]).map(format => `
-                <div class="format-option" data-format="${format}">.${format}</div>
-            `).join('');
-        }
-        
-        // Inicialização e Event Listeners
-        function initialize() {
-            checkBrowserCompatibility();
-            
-            // Evento para seleção de arquivos
+        // Event Listeners
+        function initializeEventListeners() {
+            // Seleção de arquivos
             elements.dropArea.addEventListener('click', () => elements.fileInput.click());
-            elements.fileInput.addEventListener('change', async (e) => {
+            
+            elements.fileInput.addEventListener('change', (e) => {
                 for (const file of e.target.files) {
                     const info = validateFile(file);
                     if (info.valid) {
                         selectedFiles.push(file);
                     } else {
-                        log(`Arquivo ${file.name} inválido ou formato não suportado.`, 'warning');
+                        log(`Arquivo ${file.name} não suportado.`, 'warning');
                     }
                 }
                 renderFileList();
@@ -1519,308 +1103,91 @@
                 elements.dropArea.addEventListener(eventName, (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                }, false);
+                });
             });
+
             ['dragenter', 'dragover'].forEach(eventName => {
-                elements.dropArea.addEventListener(eventName, () => elements.dropArea.classList.add('highlight'), false);
+                elements.dropArea.addEventListener(eventName, () => {
+                    elements.dropArea.classList.add('highlight');
+                });
             });
+
             ['dragleave', 'drop'].forEach(eventName => {
-                elements.dropArea.addEventListener(eventName, () => elements.dropArea.classList.remove('highlight'), false);
+                elements.dropArea.addEventListener(eventName, () => {
+                    elements.dropArea.classList.remove('highlight');
+                });
             });
+
             elements.dropArea.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                for (const file of dt.files) {
+                const files = e.dataTransfer.files;
+                for (const file of files) {
                     const info = validateFile(file);
                     if (info.valid) {
                         selectedFiles.push(file);
                     } else {
-                        log(`Arquivo ${file.name} inválido ou formato não suportado.`, 'warning');
+                        log(`Arquivo ${file.name} não suportado.`, 'warning');
                     }
                 }
                 renderFileList();
             });
 
-            // Seleção do modo de conversão
+            // Seleção do modo
             document.querySelectorAll('.method-option').forEach(option => {
                 option.addEventListener('click', (e) => {
                     document.querySelector('.method-option.selected')?.classList.remove('selected');
                     e.currentTarget.classList.add('selected');
                     conversionMode = e.currentTarget.dataset.mode;
                     elements.currentMode.textContent = e.currentTarget.querySelector('h4').textContent.trim();
-                    updateAdvancedOptionsUI();
+                    updateUI();
                 });
             });
 
-            // Seleção de formato de saída
+            // Seleção de formato
             elements.formatGrid.addEventListener('click', (e) => {
                 if (e.target.classList.contains('format-option')) {
-                    document.querySelector('.format-option.selected')?.classList.remove('selected');
+                    elements.formatGrid.querySelector('.format-option.selected')?.classList.remove('selected');
                     e.target.classList.add('selected');
                 }
             });
 
-            // Eventos dos botões de controle
-            elements.processBtn.addEventListener('click', () => {
-                if (selectedFiles.length === 0) {
-                    log('Nenhum arquivo selecionado.', 'warning');
-                    return;
-                }
-                if (processingQueue.length > 0) {
-                    log('Já existe uma fila de processamento. Use "Processar Todos".', 'warning');
-                    return;
-                }
-
-                selectedFiles.forEach(file => {
-                    const options = {
-                        outputFormat: document.querySelector('.format-option.selected')?.dataset.format,
-                        quality: elements.qualitySelect.value,
-                        startTime: elements.startTime.value,
-                        duration: elements.duration.value,
-                        volume: elements.volumeSlider.value
-                    };
-                    addToQueue(file, conversionMode, options);
-                });
-
-                selectedFiles = [];
-                renderFileList();
-                processQueue();
-            });
+            // Controles
+            elements.processBtn.addEventListener('click', processFiles);
             
-            elements.processAllBtn.addEventListener('click', () => processQueue());
-            
-            elements.pauseBtn.addEventListener('click', () => {
-                isPaused = !isPaused;
-                if (isPaused) {
-                    elements.pauseBtn.textContent = '▶️ Continuar';
-                    log('Processamento pausado.', 'info');
-                } else {
-                    elements.pauseBtn.textContent = '⏸️ Pausar';
-                    log('Processamento retomado.', 'info');
-                    processQueue();
-                }
-            });
-
             elements.clearBtn.addEventListener('click', () => {
                 selectedFiles = [];
-                processingQueue = [];
-                isProcessing = false;
-                isPaused = false;
+                convertedFiles.forEach(item => URL.revokeObjectURL(item.url));
+                convertedFiles = [];
                 renderFileList();
-                renderQueue();
-                setProgress(0, 'Aguardando...');
-                log('Seleção e fila limpas.', 'info');
-            });
-            
-            elements.clearDBBtn.addEventListener('click', async () => {
-                await clearDB();
-                convertedAudios = [];
                 renderConvertedFiles();
+                setProgress(0, 'Aguardando...');
+                log('Arquivos e resultados limpos.', 'info');
             });
 
-            // TTS e Gravação de Áudio
+            // Volume slider
             elements.volumeSlider.addEventListener('input', () => {
                 elements.volumeValue.textContent = `${elements.volumeSlider.value}%`;
             });
-
-            elements.ttsPitch.addEventListener('input', () => {
-                elements.ttsPitchValue.textContent = elements.ttsPitch.value;
-            });
-            elements.ttsRate.addEventListener('input', () => {
-                elements.ttsRateValue.textContent = elements.ttsRate.value;
-            });
-
-            elements.maleVoiceBtn.addEventListener('click', () => {
-                selectedVoiceGender = 'male';
-                updateVoiceSelector();
-                elements.maleVoiceBtn.classList.add('btn-primary');
-                elements.maleVoiceBtn.classList.remove('btn-secondary');
-                elements.femaleVoiceBtn.classList.remove('btn-primary');
-                elements.femaleVoiceBtn.classList.add('btn-secondary');
-            });
-
-            elements.femaleVoiceBtn.addEventListener('click', () => {
-                selectedVoiceGender = 'female';
-                updateVoiceSelector();
-                elements.femaleVoiceBtn.classList.add('btn-primary');
-                elements.femaleVoiceBtn.classList.remove('btn-secondary');
-                elements.maleVoiceBtn.classList.remove('btn-primary');
-                elements.maleVoiceBtn.classList.add('btn-secondary');
-            });
-
-            function getSpeechVoices() {
-                voices = speechSynthesis.getVoices();
-                availableVoices.male = voices.filter(v => v.lang.startsWith('pt-') && v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('masculino') || !v.name.toLowerCase().includes('female') && !v.name.toLowerCase().includes('feminino'));
-                availableVoices.female = voices.filter(v => v.lang.startsWith('pt-') && v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('feminino') || !v.name.toLowerCase().includes('male') && !v.name.toLowerCase().includes('masculino'));
-                updateVoiceSelector();
-            }
-
-            getSpeechVoices();
-            if (speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = getSpeechVoices;
-            }
-
-            function updateVoiceSelector() {
-                elements.ttsVoice.innerHTML = '';
-                const voicesToDisplay = availableVoices[selectedVoiceGender].length > 0 ? availableVoices[selectedVoiceGender] : voices.filter(v => v.lang.startsWith('pt-'));
-
-                voicesToDisplay.forEach(voice => {
-                    const option = document.createElement('option');
-                    option.textContent = `${voice.name} (${voice.lang})`;
-                    option.value = voice.name;
-                    elements.ttsVoice.appendChild(option);
-                });
-            }
-            
-            elements.ttsPreviewBtn.addEventListener('click', () => {
-                if (elements.ttsText.value.trim() === '') {
-                    log('Por favor, digite um texto para testar a voz.', 'warning');
-                    return;
-                }
-                const utterance = new SpeechSynthesisUtterance(elements.ttsText.value);
-                const selectedVoice = voices.find(v => v.name === elements.ttsVoice.value);
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                }
-                utterance.pitch = elements.ttsPitch.value;
-                utterance.rate = elements.ttsRate.value;
-                speechSynthesis.speak(utterance);
-            });
-            
-            elements.ttsGenerateBtn.addEventListener('click', async () => {
-                if (elements.ttsText.value.trim() === '') {
-                    log('Por favor, digite um texto para gerar o áudio.', 'warning');
-                    return;
-                }
-                log('Gerando áudio a partir do texto...', 'info');
-                
-                // Converte a fala em um Blob de áudio
-                const utterance = new SpeechSynthesisUtterance(elements.ttsText.value);
-                const selectedVoice = voices.find(v => v.name === elements.ttsVoice.value);
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                }
-                utterance.pitch = elements.ttsPitch.value;
-                utterance.rate = elements.ttsRate.value;
-
-                const stream = new MediaStream();
-                const destination = new MediaStreamAudioDestinationNode(new AudioContext());
-                const recorder = new MediaRecorder(destination.stream);
-                const chunks = [];
-
-                recorder.ondataavailable = (e) => chunks.push(e.data);
-                recorder.onstop = async () => {
-                    audioBlobToAttach = new Blob(chunks, { 'type' : 'audio/webm' });
-                    elements.audioPreview.src = URL.createObjectURL(audioBlobToAttach);
-                    elements.audioPreview.style.display = 'block';
-                    log('Áudio gerado com sucesso. Ele será anexado ao próximo arquivo processado.', 'success');
-                };
-
-                const audioContext = new AudioContext();
-                const source = audioContext.createBufferSource();
-                source.buffer = await new Promise(resolve => {
-                    const reader = new FileReader();
-                    reader.onload = e => audioContext.decodeAudioData(e.target.result).then(resolve);
-                    reader.readAsArrayBuffer(new Blob([elements.ttsText.value])); // Esta parte é um mock, pois a API de fala não fornece o buffer diretamente
-                });
-                source.connect(destination);
-                
-                recorder.start();
-                speechSynthesis.speak(utterance);
-                utterance.onend = () => {
-                    source.stop();
-                    recorder.stop();
-                };
-            });
-
-            elements.recordStartBtn.addEventListener('click', async () => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    recordedChunks = [];
-                    mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        audioBlobToAttach = new Blob(recordedChunks, { 'type' : 'audio/webm' });
-                        elements.audioPreview.src = URL.createObjectURL(audioBlobToAttach);
-                        elements.audioPreview.style.display = 'block';
-                        log('Gravação finalizada.', 'success');
-                    };
-                    mediaRecorder.start();
-                    elements.recordStartBtn.style.display = 'none';
-                    elements.recordStopBtn.style.display = 'inline-block';
-                    elements.recordPauseBtn.style.display = 'inline-block';
-                    log('Gravação iniciada...', 'info');
-                } catch (err) {
-                    log(`Erro ao acessar o microfone: ${err.message}`, 'error');
-                }
-            });
-
-            elements.recordStopBtn.addEventListener('click', () => {
-                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    mediaRecorder.stop();
-                    elements.recordStartBtn.style.display = 'inline-block';
-                    elements.recordStopBtn.style.display = 'none';
-                    elements.recordPauseBtn.style.display = 'none';
-                }
-            });
-
-            elements.recordPauseBtn.addEventListener('click', () => {
-                if (mediaRecorder) {
-                    if (mediaRecorder.state === 'recording') {
-                        mediaRecorder.pause();
-                        elements.recordPauseBtn.textContent = '▶️ Retomar';
-                        log('Gravação pausada.', 'info');
-                    } else if (mediaRecorder.state === 'paused') {
-                        mediaRecorder.resume();
-                        elements.recordPauseBtn.textContent = '⏸️ Pausar';
-                        log('Gravação retomada.', 'info');
-                    }
-                }
-            });
-
-            elements.audioInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    audioBlobToAttach = file;
-                    elements.audioPreview.src = URL.createObjectURL(file);
-                    elements.audioPreview.style.display = 'block';
-                    log(`Arquivo de áudio '${file.name}' selecionado. Ele será anexado ao próximo arquivo de imagem processado.`, 'info');
-                }
-            });
-
-            // Tabs de áudio
-            elements.tabBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelector('.tab-btn.active').classList.remove('active');
-                    btn.classList.add('active');
-                    
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.style.display = 'none';
-                    });
-
-                    document.getElementById(`${btn.dataset.tab}-content`).style.display = 'block';
-                });
-            });
-
-            // Iniciar a aplicação
-            openDB().then(() => {
-                log('Banco de dados iniciado com sucesso.');
-                return getAudiosFromDB();
-            }).then(savedFiles => {
-                convertedAudios = savedFiles.map(file => ({
-                    ...file,
-                    url: URL.createObjectURL(file.blob)
-                }));
-                renderConvertedFiles();
-            }).catch(error => {
-                log('Falha ao iniciar a aplicação.', 'error');
-            });
-            
-            updateAdvancedOptionsUI();
-            log('Aplicação iniciada. Selecione um ou mais arquivos para começar.');
         }
 
-        initialize();
+        // Inicialização
+        function initialize() {
+            log('Aplicação iniciada. Selecione arquivos para processar.', 'info');
+            checkBrowserCompatibility();
+            initializeEventListeners();
+            updateUI();
+        }
 
+        // Tornar funções globais para os botões inline
+        window.removeFile = removeFile;
+        window.downloadFile = downloadFile;
+        window.deleteConvertedFile = deleteConvertedFile;
+
+        // Iniciar quando DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
     </script>
 </body>
 </html>
